@@ -1,3 +1,4 @@
+import ContactsSection from "@/app/(dashboard)/contacts/contacts-section";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -61,18 +62,7 @@ export default async function ClientDetailPage({
         </section>
       )}
 
-      <section>
-        <h2 className="font-medium mb-2 text-sm text-gray-500 uppercase tracking-wide">Contacts</h2>
-        {contacts?.length === 0 && <p className="text-sm text-gray-400">No contacts yet.</p>}
-        <div className="space-y-1">
-          {contacts?.map((c) => (
-            <p key={c.id} className="text-sm">
-              {c.full_name} {c.is_primary && <span className="text-xs text-gray-400">(primary)</span>}
-              {c.email && <span className="text-gray-500"> — {c.email}</span>}
-            </p>
-          ))}
-        </div>
-      </section>
+      <ContactsSection clientId={id} contacts={contacts ?? []} />
 
       <section>
         <h2 className="font-medium mb-2 text-sm text-gray-500 uppercase tracking-wide">Projects</h2>
