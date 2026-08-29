@@ -22,25 +22,37 @@ export async function createDiscoverySession(clientId: string, formData: FormDat
   redirect(`/discovery/${data.id}`);
 }
 
-export async function addQuestionToSession(
-  sessionId: string,
-  libraryQuestionId: string | null,
-  questionText: string
-) {
+export async function addQuestion({
+  libraryQuestionId,
+  questionText,
+  sessionId,
+  meetingId,
+}: {
+  libraryQuestionId: string | null;
+  questionText: string;
+  sessionId?: string;
+  meetingId?: string;
+}) {
   const supabase = await createClient();
   const { error } = await supabase.from("discovery_session_questions").insert({
-    discovery_session_id: sessionId,
+    discovery_session_id: sessionId ?? null,
+    meeting_id: meetingId ?? null,
     library_question_id: libraryQuestionId,
     question: questionText,
   });
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/discovery/${sessionId}`);
+  if (sessionId) revalidatePath(`/discovery/${sessionId}`);
+  if (meetingId) revalidatePath(`/meetings/${meetingId}`);
   return { success: true };
 }
 
-export async function saveAnswer(questionRowId: string, sessionId: string, formData: FormData) {
+export async function saveAnswer(
+  questionRowId: string,
+  formData: FormData,
+  paths: { sessionId?: string; meetingId?: string }
+) {
   const parsed = answerSchema.safeParse({ answer: formData.get("answer") });
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
 
@@ -52,16 +64,21 @@ export async function saveAnswer(questionRowId: string, sessionId: string, formD
 
   if (error) return { error: { form: [error.message] } };
 
-  revalidatePath(`/discovery/${sessionId}`);
+  if (paths.sessionId) revalidatePath(`/discovery/${paths.sessionId}`);
+  if (paths.meetingId) revalidatePath(`/meetings/${paths.meetingId}`);
   return { success: true };
 }
 
-export async function removeQuestionFromSession(questionRowId: string, sessionId: string) {
+export async function removeQuestion(
+  questionRowId: string,
+  paths: { sessionId?: string; meetingId?: string }
+) {
   const supabase = await createClient();
   const { error } = await supabase.from("discovery_session_questions").delete().eq("id", questionRowId);
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/discovery/${sessionId}`);
+  if (paths.sessionId) revalidatePath(`/discovery/${paths.sessionId}`);
+  if (paths.meetingId) revalidatePath(`/meetings/${paths.meetingId}`);
   return { success: true };
 }

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import SessionClient from "./session-client";
+import QuestionsPanel from "../questions-panel";
 
 export default async function DiscoverySessionPage({
   params,
@@ -19,7 +19,7 @@ export default async function DiscoverySessionPage({
 
   if (!session) notFound();
 
-  const [{ data: sessionQuestions }, { data: library }] = await Promise.all([
+  const [{ data: questions }, { data: library }] = await Promise.all([
     supabase
       .from("discovery_session_questions")
       .select("*")
@@ -43,11 +43,7 @@ export default async function DiscoverySessionPage({
         <h1 className="text-2xl font-semibold mt-1">{session.title}</h1>
       </div>
 
-      <SessionClient
-        sessionId={id}
-        sessionQuestions={sessionQuestions ?? []}
-        library={library ?? []}
-      />
+      <QuestionsPanel sessionId={id} questions={questions ?? []} library={library ?? []} />
     </div>
   );
 }

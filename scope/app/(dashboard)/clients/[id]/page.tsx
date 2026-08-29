@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import DeleteClientButton from "./delete-button";
 import ContactsSection from "@/app/(dashboard)/contacts/contacts-section";
+import ProblemsSection from "@/app/(dashboard)/problems/problems-section";
 
 export default async function ClientDetailPage({
   params,
@@ -15,23 +16,39 @@ export default async function ClientDetailPage({
   const { data: client } = await supabase.from("clients").select("*").eq("id", id).single();
   if (!client) notFound();
 
-  const [{ data: contacts }, { data: projects }, { data: upcomingPayments }, { data: meetings }] =
-    await Promise.all([
-      supabase.from("contacts").select("*").eq("client_id", id).order("is_primary", { ascending: false }),
-      supabase.from("projects").select("id, name, status").eq("client_id", id),
-      supabase
-        .from("payments")
-        .select("id, description, amount, due_date")
-        .eq("client_id", id)
-        .in("status", ["upcoming", "due"])
-        .order("due_date"),
-      supabase
-        .from("meetings")
-        .select("id, meeting_type, meeting_date, notes")
-        .eq("client_id", id)
-        .order("meeting_date", { ascending: false })
-        .limit(5),
-    ]);
+  const [
+    { data: contacts },
+    { data: projects },
+    { data: upcomingPayments },
+    { data: meetings },
+    { data: discoverySessions },
+    { data: problems },
+  ] = await Promise.all([
+    supabase.from("contacts").select("*").eq("client_id", id).order("is_primary", { ascending: false }),
+    supabase.from("projects").select("id, name, status").eq("client_id", id),
+    supabase
+      .from("payments")
+      .select("id, description, amount, due_date")
+      .eq("client_id", id)
+      .in("status", ["upcoming", "due"])
+      .order("due_date"),
+    supabase
+      .from("meetings")
+      .select("id, meeting_type, meeting_date, notes")
+      .eq("client_id", id)
+      .order("meeting_date", { ascending: false })
+      .limit(5),
+    supabase
+      .from("discovery_sessions")
+      .select("id, title, created_at")
+      .eq("client_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("problems")
+      .select("*, solutions(id, title, status)")
+      .eq("client_id", id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
@@ -63,6 +80,27 @@ export default async function ClientDetailPage({
       )}
 
       <ContactsSection clientId={id} contacts={contacts ?? []} />
+
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-medium text-sm text-gray-500 uppercase tracking-wide">Discovery</h2>
+          <Link href={`/clients/${id}/discovery/new`} className="text-sm text-blue-600 hover:underline">
+            + New Session
+          </Link>
+        </div>
+        {discoverySessions?.length === 0 && (
+          <p className="text-sm text-gray-400">No discovery sessions yet.</p>
+        )}
+        <div className="space-y-1">
+          {discoverySessions?.map((s) => (
+            <Link key={s.id} href={`/discovery/${s.id}`} className="block text-sm hover:underline">
+              {s.title}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <ProblemsSection clientId={id} problems={problems ?? []} />
 
       <section>
         <h2 className="font-medium mb-2 text-sm text-gray-500 uppercase tracking-wide">Projects</h2>
