@@ -1,8 +1,8 @@
-import ContactsSection from "@/app/(dashboard)/contacts/contacts-section";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import DeleteClientButton from "./delete-button";
+import ContactsSection from "@/app/(dashboard)/contacts/contacts-section";
 
 export default async function ClientDetailPage({
   params,
@@ -90,13 +90,18 @@ export default async function ClientDetailPage({
       </section>
 
       <section>
-        <h2 className="font-medium mb-2 text-sm text-gray-500 uppercase tracking-wide">Recent Meetings</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-medium text-sm text-gray-500 uppercase tracking-wide">Recent Meetings</h2>
+          <Link href={`/clients/${id}/meetings/new`} className="text-sm text-blue-600 hover:underline">
+            + Log Meeting
+          </Link>
+        </div>
         {meetings?.length === 0 && <p className="text-sm text-gray-400">No meetings logged yet.</p>}
         <div className="space-y-1">
           {meetings?.map((m) => (
-            <p key={m.id} className="text-sm">
+            <Link key={m.id} href={`/meetings/${m.id}`} className="block text-sm hover:underline">
               {new Date(m.meeting_date).toLocaleDateString()} — {m.meeting_type}
-            </p>
+            </Link>
           ))}
         </div>
       </section>
