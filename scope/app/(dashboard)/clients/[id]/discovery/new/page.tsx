@@ -1,139 +1,45 @@
-import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import DeleteClientButton from "./delete-button";
-import ContactsSection from "@/app/(dashboard)/contacts/contacts-section";
+"use client";
 
-export default async function ClientDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const supabase = await createClient();
+import { useState, use } from "react";
+import { createDiscoverySession } from "@/app/(dashboard)/discovery/session-actions";
 
-  const { data: client } = await supabase.from("clients").select("*").eq("id", id).single();
-  if (!client) notFound();
+export default function NewDiscoverySessionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: clientId } = use(params);
+  const [pending, setPending] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
 
-  const [
-    { data: contacts },
-    { data: projects },
-    { data: upcomingPayments },
-    { data: meetings },
-    { data: discoverySessions },
-  ] = await Promise.all([
-    supabase.from("contacts").select("*").eq("client_id", id).order("is_primary", { ascending: false }),
-    supabase.from("projects").select("id, name, status").eq("client_id", id),
-    supabase
-      .from("payments")
-      .select("id, description, amount, due_date")
-      .eq("client_id", id)
-      .in("status", ["upcoming", "due"])
-      .order("due_date"),
-    supabase
-      .from("meetings")
-      .select("id, meeting_type, meeting_date, notes")
-      .eq("client_id", id)
-      .order("meeting_date", { ascending: false })
-      .limit(5),
-    supabase
-      .from("discovery_sessions")
-      .select("id, title, created_at")
-      .eq("client_id", id)
-      .order("created_at", { ascending: false }),
-  ]);
+  async function handleSubmit(formData: FormData) {
+    setPending(true);
+    setErrors(null);
+    const result = await createDiscoverySession(clientId, formData);
+    setPending(false);
+    if (result?.error) setErrors(result.error);
+  }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8">
-      <div className="flex items-start justify-between">
+    <div className="p-6 max-w-lg mx-auto">
+      <h1 className="text-2xl font-semibold mb-6">New Discovery Session</h1>
+      <form action={handleSubmit} className="space-y-4">
         <div>
-          <h1 className="text-2xl font-semibold">{client.company_name}</h1>
-          <p className="text-gray-500 mt-1">
-            {client.status} · {client.industry || "No industry set"}
-          </p>
-          {client.website && (
-            <a href={client.website} target="_blank" className="text-sm text-blue-600 hover:underline">
-              {client.website}
-            </a>
-          )}
+          <label className="block text-sm font-medium mb-1">Title *</label>
+          <input
+            name="title"
+            required
+            placeholder="Initial Discovery — Aug 2026"
+            className="w-full border rounded px-3 py-2"
+          />
+          {errors?.title && <p className="text-red-600 text-sm mt-1">{errors.title[0]}</p>}
         </div>
-        <div className="flex gap-2">
-          <Link href={`/clients/${id}/edit`} className="text-sm border rounded px-3 py-1.5 hover:bg-gray-50">
-            Edit
-          </Link>
-          <DeleteClientButton clientId={id} companyName={client.company_name} />
-        </div>
-      </div>
 
-      {client.notes && (
-        <section>
-          <h2 className="font-medium mb-1 text-sm text-gray-500 uppercase tracking-wide">Notes</h2>
-          <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
-        </section>
-      )}
+        {errors?.form && <p className="text-red-600 text-sm">{errors.form[0]}</p>}
 
-      <ContactsSection clientId={id} contacts={contacts ?? []} />
-
-      <section>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="font-medium text-sm text-gray-500 uppercase tracking-wide">Discovery</h2>
-          <Link href={`/clients/${id}/discovery/new`} className="text-sm text-blue-600 hover:underline">
-            + New Session
-          </Link>
-        </div>
-        {discoverySessions?.length === 0 && (
-          <p className="text-sm text-gray-400">No discovery sessions yet.</p>
-        )}
-        <div className="space-y-1">
-          {discoverySessions?.map((s) => (
-            <Link key={s.id} href={`/discovery/${s.id}`} className="block text-sm hover:underline">
-              {s.title}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="font-medium mb-2 text-sm text-gray-500 uppercase tracking-wide">Projects</h2>
-        {projects?.length === 0 && <p className="text-sm text-gray-400">No projects yet.</p>}
-        <div className="space-y-1">
-          {projects?.map((p) => (
-            <p key={p.id} className="text-sm">
-              {p.name} <span className="text-gray-500">— {p.status}</span>
-            </p>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="font-medium mb-2 text-sm text-gray-500 uppercase tracking-wide">Upcoming Payments</h2>
-        {upcomingPayments?.length === 0 && <p className="text-sm text-gray-400">Nothing outstanding.</p>}
-        <div className="space-y-1">
-          {upcomingPayments?.map((p) => (
-            <p key={p.id} className="text-sm">
-              ${p.amount} — {p.description || "Payment"}
-              {p.due_date && <span className="text-gray-500"> · due {p.due_date}</span>}
-            </p>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="font-medium text-sm text-gray-500 uppercase tracking-wide">Recent Meetings</h2>
-          <Link href={`/clients/${id}/meetings/new`} className="text-sm text-blue-600 hover:underline">
-            + Log Meeting
-          </Link>
-        </div>
-        {meetings?.length === 0 && <p className="text-sm text-gray-400">No meetings logged yet.</p>}
-        <div className="space-y-1">
-          {meetings?.map((m) => (
-            <Link key={m.id} href={`/meetings/${m.id}`} className="block text-sm hover:underline">
-              {new Date(m.meeting_date).toLocaleDateString()} — {m.meeting_type}
-            </Link>
-          ))}
-        </div>
-      </section>
+        <button
+          disabled={pending}
+          className="rounded bg-black text-white px-4 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
+        >
+          {pending ? "Creating..." : "Create Session"}
+        </button>
+      </form>
     </div>
   );
 }

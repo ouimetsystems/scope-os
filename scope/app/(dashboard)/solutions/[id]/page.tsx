@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import GenerateQuoteButton from "./generate-quote-button";
 import FeaturesPanel from "./features-panel";
 
 export default async function SolutionDetailPage({
