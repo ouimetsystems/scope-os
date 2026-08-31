@@ -26,31 +26,39 @@ async function generateQuoteNumber(supabase: any, clientId: string): Promise<str
   return `Q-${prefix}-${nextNumber}`;
 }
 
-export async function createQuoteFromSolution(solutionId: string) {
+export async function createQuoteFromProject(projectId: string) {
   const supabase = await createClient();
 
-  const { data: solution } = await supabase
-    .from("solutions")
+  const { data: project } = await supabase
+    .from("projects")
     .select("id, client_id")
-    .eq("id", solutionId)
+    .eq("id", projectId)
     .single();
 
-  if (!solution) return { error: "Solution not found" };
+  if (!project) return { error: "Project not found" };
 
-  const { data: features } = await supabase
-    .from("solution_features")
-    .select("price, recurring_price")
-    .eq("solution_id", solutionId);
+  const { data: solutions } = await supabase
+    .from("solutions")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("status", "selected");
+
+  const solutionIds = (solutions ?? []).map((s) => s.id);
+
+  const { data: features } = solutionIds.length
+    ? await supabase.from("solution_features").select("price, recurring_price").in("solution_id", solutionIds)
+    : { data: [] };
 
   const totalAmount = (features ?? []).reduce((sum, f) => sum + (f.price ?? 0), 0);
 
-  const quoteNumber = await generateQuoteNumber(supabase, solution.client_id);
+  const quoteNumber = await generateQuoteNumber(supabase, project.client_id);
 
   const { data, error } = await supabase
     .from("quotes")
     .insert({
-      client_id: solution.client_id,
-      solution_id: solutionId,
+      client_id: project.client_id,
+      project_id: projectId,
+      solution_id: null,
       quote_number: quoteNumber,
       total_amount: totalAmount,
       status: "draft",
@@ -61,7 +69,7 @@ export async function createQuoteFromSolution(solutionId: string) {
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/clients/${solution.client_id}`);
+  revalidatePath(`/projects/${projectId}/quotes`);
   redirect(`/quotes/${data.id}`);
 }
 
@@ -71,10 +79,17 @@ export async function reviseQuote(quoteId: string) {
   const { data: oldQuote } = await supabase.from("quotes").select("*").eq("id", quoteId).single();
   if (!oldQuote) return { error: "Quote not found" };
 
-  const { data: features } = await supabase
-    .from("solution_features")
-    .select("price, recurring_price")
-    .eq("solution_id", oldQuote.solution_id);
+  const { data: solutions } = await supabase
+    .from("solutions")
+    .select("id")
+    .eq("project_id", oldQuote.project_id)
+    .eq("status", "selected");
+
+  const solutionIds = (solutions ?? []).map((s) => s.id);
+
+  const { data: features } = solutionIds.length
+    ? await supabase.from("solution_features").select("price, recurring_price").in("solution_id", solutionIds)
+    : { data: [] };
 
   const totalAmount = (features ?? []).reduce((sum, f) => sum + (f.price ?? 0), 0);
 
@@ -86,7 +101,8 @@ export async function reviseQuote(quoteId: string) {
     .from("quotes")
     .insert({
       client_id: oldQuote.client_id,
-      solution_id: oldQuote.solution_id,
+      project_id: oldQuote.project_id,
+      solution_id: null,
       quote_number: newQuoteNumber,
       version: oldQuote.version + 1,
       previous_version_id: oldQuote.id,

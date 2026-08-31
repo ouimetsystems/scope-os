@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import GenerateQuoteButton from "./generate-quote-button";
 import FeaturesPanel from "./features-panel";
 
 export default async function SolutionDetailPage({
@@ -29,14 +28,17 @@ export default async function SolutionDetailPage({
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div>
-        <Link href={`/clients/${solution.client_id}`} className="text-sm text-blue-600 hover:underline">
-          ← {solution.clients.company_name}
+        <Link
+          href={solution.project_id ? `/projects/${solution.project_id}/problems` : `/clients/${solution.client_id}`}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          ← Back to Problems & Solutions
         </Link>
-        <h1 className="text-2xl font-semibold mt-1">{solution.title}</h1>
+        <h1 className="text-2xl font-semibold mt-1 text-gray-900">{solution.title}</h1>
         {solution.problems && (
-          <p className="text-sm text-gray-500">Solves: {solution.problems.title}</p>
+          <p className="text-sm text-gray-600">Solves: {solution.problems.title}</p>
         )}
-        {solution.description && <p className="text-sm text-gray-600 mt-1">{solution.description}</p>}
+        {solution.description && <p className="text-sm text-gray-700 mt-1">{solution.description}</p>}
       </div>
 
       <FeaturesPanel

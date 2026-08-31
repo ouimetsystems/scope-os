@@ -4,7 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { solutionSchema, customFeatureSchema } from "@/lib/validations/problem-solution";
 import { revalidatePath } from "next/cache";
 
-export async function createSolution(clientId: string, problemId: string | null, formData: FormData) {
+export async function createSolution(
+  clientId: string,
+  projectId: string,
+  problemId: string | null,
+  formData: FormData
+) {
   const parsed = solutionSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description") ?? "",
@@ -14,32 +19,32 @@ export async function createSolution(clientId: string, problemId: string | null,
   const supabase = await createClient();
   const { error } = await supabase
     .from("solutions")
-    .insert({ ...parsed.data, client_id: clientId, problem_id: problemId });
+    .insert({ ...parsed.data, client_id: clientId, project_id: projectId, problem_id: problemId });
 
   if (error) return { error: { form: [error.message] } };
 
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true };
 }
 
-export async function updateSolutionStatus(solutionId: string, clientId: string, status: string) {
+export async function updateSolutionStatus(solutionId: string, projectId: string, status: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("solutions").update({ status }).eq("id", solutionId);
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/projects/${projectId}/problems`);
   revalidatePath(`/solutions/${solutionId}`);
   return { success: true };
 }
 
-export async function deleteSolution(solutionId: string, clientId: string) {
+export async function deleteSolution(solutionId: string, projectId: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("solutions").delete().eq("id", solutionId);
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true };
 }
 

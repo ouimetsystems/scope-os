@@ -22,12 +22,13 @@ export default async function ProjectLayout({
   if (!project) notFound();
 
   const navItems = [
-    { href: `/projects/${id}`, label: "Overview" },
-    { href: `/projects/${id}/meetings`, label: "Meetings" },
-    { href: `/projects/${id}/questions`, label: "Discovery Questions" },
-    { href: `/projects/${id}/problems`, label: "Problems & Solutions" },
-    { href: `/projects/${id}/quotes`, label: "Quotes" },
-  ];
+  { href: `/projects/${id}`, label: "Overview" },
+  { href: `/projects/${id}/meetings`, label: "Meetings" },
+  { href: `/projects/${id}/questions`, label: "Discovery Questions" },
+  { href: `/projects/${id}/problems`, label: "Problems & Solutions" },
+  { href: `/projects/${id}/features`, label: "Features" },
+  { href: `/projects/${id}/quotes`, label: "Quotes" },
+];
 
   return (
     <div className="p-6 max-w-5xl mx-auto">

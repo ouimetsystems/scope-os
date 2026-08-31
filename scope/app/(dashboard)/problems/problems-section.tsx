@@ -21,22 +21,24 @@ type Problem = {
 };
 
 const statusColors: Record<string, string> = {
-  open: "bg-yellow-100 text-yellow-700",
-  addressed: "bg-green-100 text-green-700",
-  wont_fix: "bg-gray-100 text-gray-500",
+  open: "bg-yellow-100 text-yellow-800",
+  addressed: "bg-green-100 text-green-800",
+  wont_fix: "bg-gray-100 text-gray-600",
 };
 
 const solutionColors: Record<string, string> = {
-  proposed: "bg-gray-100 text-gray-600",
-  selected: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-500",
+  proposed: "bg-gray-100 text-gray-700",
+  selected: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-700",
 };
 
 export default function ProblemsSection({
   clientId,
+  projectId,
   problems,
 }: {
   clientId: string;
+  projectId: string;
   problems: Problem[];
 }) {
   const router = useRouter();
@@ -48,13 +50,14 @@ export default function ProblemsSection({
   }
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="font-medium text-sm text-gray-500 uppercase tracking-wide">
-          Problems & Solutions
-        </h2>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-medium text-gray-900">Problems & Solutions</h2>
         {!adding && (
-          <button onClick={() => setAdding(true)} className="text-sm text-blue-600 hover:underline">
+          <button
+            onClick={() => setAdding(true)}
+            className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800"
+          >
             + Add Problem
           </button>
         )}
@@ -63,6 +66,7 @@ export default function ProblemsSection({
       {adding && (
         <ProblemForm
           clientId={clientId}
+          projectId={projectId}
           onDone={() => {
             setAdding(false);
             refresh();
@@ -71,7 +75,7 @@ export default function ProblemsSection({
       )}
 
       {problems.length === 0 && !adding && (
-        <p className="text-sm text-gray-400">No problems logged yet.</p>
+        <p className="text-sm text-gray-500">No problems logged yet.</p>
       )}
 
       <div className="space-y-3">
@@ -79,14 +83,14 @@ export default function ProblemsSection({
           <div key={p.id} className="border rounded-lg p-3">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-medium">{p.title}</p>
-                {p.description && <p className="text-xs text-gray-500 mt-0.5">{p.description}</p>}
+                <p className="text-sm font-medium text-gray-900">{p.title}</p>
+                {p.description && <p className="text-xs text-gray-600 mt-0.5">{p.description}</p>}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <select
                   value={p.status}
                   onChange={async (e) => {
-                    await updateProblemStatus(p.id, clientId, e.target.value);
+                    await updateProblemStatus(p.id, projectId, e.target.value);
                     refresh();
                   }}
                   className={`text-xs rounded-full px-2 py-1 border-none ${statusColors[p.status]}`}
@@ -98,11 +102,11 @@ export default function ProblemsSection({
                 <button
                   onClick={async () => {
                     if (confirm("Delete this problem?")) {
-                      await deleteProblem(p.id, clientId);
+                      await deleteProblem(p.id, projectId);
                       refresh();
                     }
                   }}
-                  className="text-xs text-red-500 hover:text-red-700"
+                  className="text-xs text-red-600 hover:text-red-800"
                 >
                   Delete
                 </button>
@@ -114,7 +118,7 @@ export default function ProblemsSection({
                 <Link
                   key={s.id}
                   href={`/solutions/${s.id}`}
-                  className="flex items-center gap-2 text-sm hover:underline"
+                  className="flex items-center gap-2 text-sm text-gray-900 hover:underline"
                 >
                   {s.title}
                   <span className={`text-xs rounded-full px-2 py-0.5 ${solutionColors[s.status]}`}>
@@ -126,6 +130,7 @@ export default function ProblemsSection({
               {addingSolutionFor === p.id ? (
                 <SolutionForm
                   clientId={clientId}
+                  projectId={projectId}
                   problemId={p.id}
                   onDone={() => {
                     setAddingSolutionFor(null);
@@ -144,18 +149,26 @@ export default function ProblemsSection({
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
-function ProblemForm({ clientId, onDone }: { clientId: string; onDone: () => void }) {
+function ProblemForm({
+  clientId,
+  projectId,
+  onDone,
+}: {
+  clientId: string;
+  projectId: string;
+  onDone: () => void;
+}) {
   const [pending, setPending] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
 
   async function handleSubmit(formData: FormData) {
     setPending(true);
     setErrors(null);
-    const result = await createProblem(clientId, formData);
+    const result = await createProblem(clientId, projectId, formData);
     setPending(false);
     if (result?.error) {
       setErrors(result.error);
@@ -170,14 +183,14 @@ function ProblemForm({ clientId, onDone }: { clientId: string; onDone: () => voi
         name="title"
         placeholder="Problem title *"
         required
-        className="w-full border rounded px-3 py-2 text-sm"
+        className="w-full border rounded px-3 py-2 text-sm text-gray-900"
       />
       {errors?.title && <p className="text-red-600 text-xs">{errors.title[0]}</p>}
       <textarea
         name="description"
         placeholder="Description"
         rows={2}
-        className="w-full border rounded px-3 py-2 text-sm"
+        className="w-full border rounded px-3 py-2 text-sm text-gray-900"
       />
       <div className="flex gap-2">
         <button
@@ -186,7 +199,7 @@ function ProblemForm({ clientId, onDone }: { clientId: string; onDone: () => voi
         >
           {pending ? "Saving..." : "Add Problem"}
         </button>
-        <button type="button" onClick={onDone} className="rounded border px-3 py-1.5 text-sm">
+        <button type="button" onClick={onDone} className="rounded border px-3 py-1.5 text-sm text-gray-700">
           Cancel
         </button>
       </div>
@@ -196,10 +209,12 @@ function ProblemForm({ clientId, onDone }: { clientId: string; onDone: () => voi
 
 function SolutionForm({
   clientId,
+  projectId,
   problemId,
   onDone,
 }: {
   clientId: string;
+  projectId: string;
   problemId: string;
   onDone: () => void;
 }) {
@@ -209,7 +224,7 @@ function SolutionForm({
   async function handleSubmit(formData: FormData) {
     setPending(true);
     setErrors(null);
-    const result = await createSolution(clientId, problemId, formData);
+    const result = await createSolution(clientId, projectId, problemId, formData);
     setPending(false);
     if (result?.error) {
       setErrors(result.error);
@@ -224,14 +239,14 @@ function SolutionForm({
         name="title"
         placeholder="Solution title *"
         required
-        className="w-full border rounded px-3 py-1.5 text-sm"
+        className="w-full border rounded px-3 py-1.5 text-sm text-gray-900"
       />
       {errors?.title && <p className="text-red-600 text-xs">{errors.title[0]}</p>}
       <textarea
         name="description"
         placeholder="Description"
         rows={2}
-        className="w-full border rounded px-3 py-1.5 text-sm"
+        className="w-full border rounded px-3 py-1.5 text-sm text-gray-900"
       />
       <div className="flex gap-2">
         <button
@@ -240,7 +255,7 @@ function SolutionForm({
         >
           {pending ? "Saving..." : "Add Solution"}
         </button>
-        <button type="button" onClick={onDone} className="rounded border px-3 py-1 text-xs">
+        <button type="button" onClick={onDone} className="rounded border px-3 py-1 text-xs text-gray-700">
           Cancel
         </button>
       </div>
