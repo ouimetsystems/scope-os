@@ -218,6 +218,7 @@ function SolutionForm({
   problemId: string;
   onDone: () => void;
 }) {
+  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
 
@@ -228,6 +229,10 @@ function SolutionForm({
     setPending(false);
     if (result?.error) {
       setErrors(result.error);
+      return;
+    }
+    if (result?.solutionId) {
+      router.push(`/solutions/${result.solutionId}`);
       return;
     }
     onDone();
@@ -253,7 +258,7 @@ function SolutionForm({
           disabled={pending}
           className="rounded bg-black text-white px-3 py-1 text-xs hover:bg-gray-800 disabled:opacity-50"
         >
-          {pending ? "Saving..." : "Add Solution"}
+          {pending ? "Saving..." : "Add Solution & Add Features"}
         </button>
         <button type="button" onClick={onDone} className="rounded border px-3 py-1 text-xs text-gray-700">
           Cancel

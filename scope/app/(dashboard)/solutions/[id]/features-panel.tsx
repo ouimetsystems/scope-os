@@ -47,13 +47,18 @@ export default function FeaturesPanel({
   dependencies: Dependency[];
 }) {
   const router = useRouter();
-  const [picking, setPicking] = useState(false);
+  const [picking, setPicking] = useState(true);
   const [addingCustom, setAddingCustom] = useState(false);
+  const [search, setSearch] = useState("");
 
   const usedLibraryIds = new Set(solutionFeatures.map((f) => f.feature_library_id).filter(Boolean));
   const availableLibrary = library.filter((f) => !usedLibraryIds.has(f.id));
 
-  const grouped = availableLibrary.reduce<Record<string, LibraryFeature[]>>((acc, f) => {
+  const searched = search.trim()
+    ? availableLibrary.filter((f) => f.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : availableLibrary;
+
+  const grouped = searched.reduce<Record<string, LibraryFeature[]>>((acc, f) => {
     const key = f.category ?? "Other";
     acc[key] = acc[key] ? [...acc[key], f] : [f];
     return acc;
@@ -67,7 +72,6 @@ export default function FeaturesPanel({
     await addFeatureFromLibrary(solutionId, libraryFeature.id);
     router.refresh();
 
-    // suggest dependencies
     const deps = dependencies.filter((d) => d.feature_id === libraryFeature.id);
     for (const dep of deps) {
       const alreadyHas = solutionFeatures.some((f) => f.feature_library_id === dep.depends_on_feature_id);
@@ -85,12 +89,12 @@ export default function FeaturesPanel({
     <div className="space-y-6">
       <div className="flex gap-4 text-sm bg-gray-50 border rounded-lg p-3">
         <span>
-          <span className="text-gray-500">One-time:</span>{" "}
-          <span className="font-medium">${oneTimeTotal.toFixed(2)}</span>
+          <span className="text-gray-600">One-time:</span>{" "}
+          <span className="font-medium text-gray-900">${oneTimeTotal.toFixed(2)}</span>
         </span>
         <span>
-          <span className="text-gray-500">Monthly:</span>{" "}
-          <span className="font-medium">${monthlyTotal.toFixed(2)}/mo</span>
+          <span className="text-gray-600">Monthly:</span>{" "}
+          <span className="font-medium text-gray-900">${monthlyTotal.toFixed(2)}/mo</span>
         </span>
         {unpriced.length > 0 && (
           <span className="text-yellow-700">
@@ -101,65 +105,73 @@ export default function FeaturesPanel({
 
       <div className="space-y-2">
         {solutionFeatures.length === 0 && (
-          <p className="text-sm text-gray-400">No features added yet.</p>
+          <p className="text-sm text-gray-500">No features added yet — search or browse below.</p>
         )}
         {solutionFeatures.map((f) => (
           <FeatureRow key={f.id} feature={f} solutionId={solutionId} onChanged={() => router.refresh()} />
         ))}
       </div>
 
-      <div className="border-t pt-4 flex gap-3">
-        <button onClick={() => setPicking(!picking)} className="text-sm text-blue-600 hover:underline">
-          {picking ? "Hide library" : "+ Add from Library"}
-        </button>
-        <button
-          onClick={() => setAddingCustom(!addingCustom)}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          {addingCustom ? "Cancel" : "+ Add Custom Feature"}
-        </button>
-      </div>
-
-      {addingCustom && (
-        <CustomFeatureForm
-          solutionId={solutionId}
-          onDone={() => {
-            setAddingCustom(false);
-            router.refresh();
-          }}
-        />
-      )}
-
-      {picking && (
-        <div className="border rounded-lg divide-y max-h-96 overflow-y-auto">
-          {Object.keys(grouped).length === 0 && (
-            <p className="p-3 text-sm text-gray-400">No more library features to add.</p>
-          )}
-          {Object.entries(grouped).map(([category, feats]) => (
-            <div key={category}>
-              <p className="px-3 pt-2 text-xs font-semibold text-gray-400 uppercase">{category}</p>
-              {feats.map((f) => (
-                <button
-                  key={f.id}
-                  onClick={() => handlePick(f)}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex justify-between"
-                >
-                  <span>
-                    {f.name}
-                    {f.is_included && <span className="text-xs text-green-600 ml-2">(included)</span>}
-                  </span>
-                  {!f.is_included && (
-                    <span className="text-gray-500 text-xs">
-                      {f.base_price != null ? `$${f.base_price}` : "no price"}
-                      {f.recurring_price != null && ` +$${f.recurring_price}/mo`}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          ))}
+      <div className="border-t pt-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search features..."
+            className="flex-1 border rounded px-3 py-2 text-sm text-gray-900"
+          />
+          <button onClick={() => setPicking(!picking)} className="text-sm text-blue-600 hover:underline shrink-0">
+            {picking ? "Hide list" : "Browse Library"}
+          </button>
+          <button
+            onClick={() => setAddingCustom(!addingCustom)}
+            className="text-sm text-blue-600 hover:underline shrink-0"
+          >
+            {addingCustom ? "Cancel" : "+ Custom"}
+          </button>
         </div>
-      )}
+
+        {addingCustom && (
+          <CustomFeatureForm
+            solutionId={solutionId}
+            onDone={() => {
+              setAddingCustom(false);
+              router.refresh();
+            }}
+          />
+        )}
+
+        {picking && (
+          <div className="border rounded-lg divide-y max-h-96 overflow-y-auto">
+            {Object.keys(grouped).length === 0 && (
+              <p className="p-3 text-sm text-gray-500">No matching features found.</p>
+            )}
+            {Object.entries(grouped).map(([category, feats]) => (
+              <div key={category}>
+                <p className="px-3 pt-2 text-xs font-semibold text-gray-500 uppercase">{category}</p>
+                {feats.map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => handlePick(f)}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex justify-between"
+                  >
+                    <span className="text-gray-900">
+                      {f.name}
+                      {f.is_included && <span className="text-xs text-green-700 ml-2">(included)</span>}
+                    </span>
+                    {!f.is_included && (
+                      <span className="text-gray-600 text-xs">
+                        {f.base_price != null ? `$${f.base_price}` : "no price"}
+                        {f.recurring_price != null && ` +$${f.recurring_price}/mo`}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -191,8 +203,8 @@ function FeatureRow({
     <div className={`border rounded-lg p-3 ${needsEstimate ? "border-yellow-300 bg-yellow-50" : ""}`}>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-medium">{feature.name}</p>
-          {feature.description && <p className="text-xs text-gray-500">{feature.description}</p>}
+          <p className="text-sm font-medium text-gray-900">{feature.name}</p>
+          {feature.description && <p className="text-xs text-gray-600">{feature.description}</p>}
           {needsEstimate && (
             <p className="text-xs text-yellow-700 mt-1">Not applied — needs a price estimate</p>
           )}
@@ -202,7 +214,7 @@ function FeatureRow({
             await removeSolutionFeature(feature.id, solutionId);
             onChanged();
           }}
-          className="text-xs text-red-500 hover:text-red-700 shrink-0"
+          className="text-xs text-red-600 hover:text-red-800 shrink-0"
         >
           Remove
         </button>
@@ -215,7 +227,7 @@ function FeatureRow({
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           onBlur={savePrice}
-          className="w-32 border rounded px-2 py-1 text-sm"
+          className="w-32 border rounded px-2 py-1 text-sm text-gray-900"
         />
         <input
           type="number"
@@ -224,7 +236,7 @@ function FeatureRow({
           value={recurring}
           onChange={(e) => setRecurring(e.target.value)}
           onBlur={savePrice}
-          className="w-32 border rounded px-2 py-1 text-sm"
+          className="w-32 border rounded px-2 py-1 text-sm text-gray-900"
         />
       </div>
     </div>
@@ -253,16 +265,16 @@ function CustomFeatureForm({ solutionId, onDone }: { solutionId: string; onDone:
         name="name"
         placeholder="Feature name *"
         required
-        className="w-full border rounded px-3 py-2 text-sm"
+        className="w-full border rounded px-3 py-2 text-sm text-gray-900"
       />
       {errors?.name && <p className="text-red-600 text-xs">{errors.name[0]}</p>}
       <textarea
         name="description"
         placeholder="Description"
         rows={2}
-        className="w-full border rounded px-3 py-2 text-sm"
+        className="w-full border rounded px-3 py-2 text-sm text-gray-900"
       />
-      <select name="complexity" defaultValue="medium" className="w-full border rounded px-3 py-2 text-sm">
+      <select name="complexity" defaultValue="medium" className="w-full border rounded px-3 py-2 text-sm text-gray-900">
         <option value="low">Low complexity</option>
         <option value="medium">Medium complexity</option>
         <option value="high">High complexity</option>
@@ -273,14 +285,14 @@ function CustomFeatureForm({ solutionId, onDone }: { solutionId: string; onDone:
           type="number"
           step="0.01"
           placeholder="One-time $ (optional)"
-          className="w-full border rounded px-3 py-2 text-sm"
+          className="w-full border rounded px-3 py-2 text-sm text-gray-900"
         />
         <input
           name="recurring_price"
           type="number"
           step="0.01"
           placeholder="Monthly $ (optional)"
-          className="w-full border rounded px-3 py-2 text-sm"
+          className="w-full border rounded px-3 py-2 text-sm text-gray-900"
         />
       </div>
       <div className="flex gap-2">
@@ -290,7 +302,7 @@ function CustomFeatureForm({ solutionId, onDone }: { solutionId: string; onDone:
         >
           {pending ? "Adding..." : "Add Feature"}
         </button>
-        <button type="button" onClick={onDone} className="rounded border px-3 py-1.5 text-sm">
+        <button type="button" onClick={onDone} className="rounded border px-3 py-1.5 text-sm text-gray-700">
           Cancel
         </button>
       </div>

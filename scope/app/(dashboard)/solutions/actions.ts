@@ -17,14 +17,16 @@ export async function createSolution(
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("solutions")
-    .insert({ ...parsed.data, client_id: clientId, project_id: projectId, problem_id: problemId });
+    .insert({ ...parsed.data, client_id: clientId, project_id: projectId, problem_id: problemId })
+    .select("id")
+    .single();
 
   if (error) return { error: { form: [error.message] } };
 
   revalidatePath(`/projects/${projectId}/problems`);
-  return { success: true };
+  return { success: true, solutionId: data.id };
 }
 
 export async function updateSolutionStatus(solutionId: string, projectId: string, status: string) {
