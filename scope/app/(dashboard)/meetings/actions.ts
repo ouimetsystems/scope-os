@@ -5,6 +5,40 @@ import { meetingSchema, nextStepSchema } from "@/lib/validations/meeting";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+export async function createMeetingForProject(projectId: string, formData: FormData) {
+  const parsed = meetingSchema.safeParse({
+    meeting_type: formData.get("meeting_type"),
+    meeting_date: formData.get("meeting_date"),
+    attendees: formData.get("attendees") ?? "",
+    notes: formData.get("notes") ?? "",
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+
+  const supabase = await createClient();
+
+  const { data: project } = await supabase
+    .from("projects")
+    .select("client_id")
+    .eq("id", projectId)
+    .single();
+
+  if (!project) return { error: { form: ["Project not found"] } };
+
+  const { data, error } = await supabase
+    .from("meetings")
+    .insert({ ...parsed.data, client_id: project.client_id, project_id: projectId })
+    .select("id")
+    .single();
+
+  if (error) return { error: { form: [error.message] } };
+
+  revalidatePath(`/projects/${projectId}/meetings`);
+  redirect(`/meetings/${data.id}`);
+}
+
 export async function createMeeting(clientId: string, formData: FormData) {
   const parsed = meetingSchema.safeParse({
     meeting_type: formData.get("meeting_type"),

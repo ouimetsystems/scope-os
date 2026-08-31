@@ -27,16 +27,19 @@ export async function addQuestion({
   questionText,
   sessionId,
   meetingId,
+  projectId,
 }: {
   libraryQuestionId: string | null;
   questionText: string;
   sessionId?: string;
   meetingId?: string;
+  projectId?: string;
 }) {
   const supabase = await createClient();
   const { error } = await supabase.from("discovery_session_questions").insert({
     discovery_session_id: sessionId ?? null,
     meeting_id: meetingId ?? null,
+    project_id: projectId ?? null,
     library_question_id: libraryQuestionId,
     question: questionText,
   });
@@ -45,13 +48,14 @@ export async function addQuestion({
 
   if (sessionId) revalidatePath(`/discovery/${sessionId}`);
   if (meetingId) revalidatePath(`/meetings/${meetingId}`);
+  if (projectId) revalidatePath(`/projects/${projectId}/questions`);
   return { success: true };
 }
 
 export async function saveAnswer(
   questionRowId: string,
   formData: FormData,
-  paths: { sessionId?: string; meetingId?: string }
+  paths: { sessionId?: string; meetingId?: string; projectId?: string }
 ) {
   const parsed = answerSchema.safeParse({ answer: formData.get("answer") });
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
@@ -66,12 +70,13 @@ export async function saveAnswer(
 
   if (paths.sessionId) revalidatePath(`/discovery/${paths.sessionId}`);
   if (paths.meetingId) revalidatePath(`/meetings/${paths.meetingId}`);
+  if (paths.projectId) revalidatePath(`/projects/${paths.projectId}/questions`);
   return { success: true };
 }
 
 export async function removeQuestion(
   questionRowId: string,
-  paths: { sessionId?: string; meetingId?: string }
+  paths: { sessionId?: string; meetingId?: string; projectId?: string }
 ) {
   const supabase = await createClient();
   const { error } = await supabase.from("discovery_session_questions").delete().eq("id", questionRowId);
@@ -80,5 +85,6 @@ export async function removeQuestion(
 
   if (paths.sessionId) revalidatePath(`/discovery/${paths.sessionId}`);
   if (paths.meetingId) revalidatePath(`/meetings/${paths.meetingId}`);
+  if (paths.projectId) revalidatePath(`/projects/${paths.projectId}/questions`);
   return { success: true };
 }
