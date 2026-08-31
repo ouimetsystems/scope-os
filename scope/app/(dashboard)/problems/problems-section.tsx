@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createProblem, updateProblemStatus, deleteProblem } from "./actions";
-import { createSolution } from "@/app/(dashboard)/solutions/actions";
+import { createSolution, updateSolutionStatus } from "@/app/(dashboard)/solutions/actions";
 
 type Solution = {
   id: string;
@@ -115,17 +115,24 @@ export default function ProblemsSection({
 
             <div className="mt-2 pl-3 border-l-2 space-y-1">
               {p.solutions.map((s) => (
-                <Link
-                  key={s.id}
-                  href={`/solutions/${s.id}`}
-                  className="flex items-center gap-2 text-sm text-gray-900 hover:underline"
-                >
-                  {s.title}
-                  <span className={`text-xs rounded-full px-2 py-0.5 ${solutionColors[s.status]}`}>
-                    {s.status}
-                  </span>
-                </Link>
-              ))}
+  <div key={s.id} className="flex items-center gap-2">
+    <Link href={`/solutions/${s.id}`} className="text-sm text-gray-900 hover:underline">
+      {s.title}
+    </Link>
+    <select
+      value={s.status}
+      onChange={async (e) => {
+        await updateSolutionStatus(s.id, projectId, e.target.value);
+        refresh();
+      }}
+      className={`text-xs rounded-full px-2 py-0.5 border-none ${solutionColors[s.status]}`}
+    >
+      <option value="proposed">proposed</option>
+      <option value="selected">selected</option>
+      <option value="rejected">rejected</option>
+    </select>
+  </div>
+))}
 
               {addingSolutionFor === p.id ? (
                 <SolutionForm
