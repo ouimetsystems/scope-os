@@ -33,7 +33,13 @@ export default async function ClientDetailPage({
       .order("created_at", { ascending: false }),
   ]);
 
+  <section className="border rounded-lg p-3 bg-gray-50">
+  <p className="text-xs text-gray-600 uppercase tracking-wide mb-1">Bug Report API Key</p>
+  <code className="text-xs text-gray-800 break-all">{client.api_key}</code>
+</section>
+
   return (
+    
     <div className="p-6 max-w-4xl mx-auto space-y-8">
       <div className="flex items-start justify-between">
         <div>
