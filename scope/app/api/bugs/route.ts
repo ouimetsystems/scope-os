@@ -13,6 +13,8 @@ function serviceClient() {
 
 export async function POST(request: NextRequest) {
   const apiKey = request.headers.get("x-api-key");
+  console.log("Received API key:", JSON.stringify(apiKey));
+
   if (!apiKey) {
     return NextResponse.json({ error: "Missing x-api-key header" }, { status: 401 });
   }
@@ -29,11 +31,13 @@ export async function POST(request: NextRequest) {
 
   const supabase = serviceClient();
 
-  const { data: client } = await supabase
+  const { data: client, error: clientLookupError } = await supabase
     .from("clients")
     .select("id")
     .eq("api_key", apiKey)
     .single();
+
+  console.log("Client lookup result:", client, "Error:", clientLookupError);
 
   if (!client) {
     return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
