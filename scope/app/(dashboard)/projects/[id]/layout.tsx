@@ -29,6 +29,7 @@ export default async function ProjectLayout({
   { href: `/projects/${id}/features`, label: "Features" },
   { href: `/projects/${id}/quotes`, label: "Quotes" },
   { href: `/projects/${id}/sow`, label: "SOW" },
+  { href: `/projects/${id}/dev-logs`, label: "Dev Log" },
 ];
 
   return (
