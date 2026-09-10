@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
       title: parsed.data.title,
       description: parsed.data.description || null,
       error_code: parsed.data.error_code || null,
+      environment: parsed.data.environment,
     })
     .select("id")
     .single();
