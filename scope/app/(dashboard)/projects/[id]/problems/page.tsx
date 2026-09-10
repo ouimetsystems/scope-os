@@ -10,21 +10,24 @@ export default async function ProjectProblemsPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: project } = await supabase
-    .from("projects")
-    .select("id, client_id")
-    .eq("id", id)
-    .single();
-
+  const { data: project } = await supabase.from("projects").select("id, client_id").eq("id", id).single();
   if (!project) notFound();
 
-  const { data: problems } = await supabase
-    .from("problems")
-    .select("*, solutions(id, title, status)")
-    .eq("project_id", id)
-    .order("created_at", { ascending: false });
+  const [{ data: problems }, { data: allFeatures }] = await Promise.all([
+    supabase
+      .from("problems")
+      .select("*, problem_features(feature_id, features(id, name))")
+      .eq("project_id", id)
+      .order("created_at", { ascending: false }),
+    supabase.from("features").select("id, name").eq("project_id", id).order("name"),
+  ]);
 
   return (
-    <ProblemsSection clientId={project.client_id} projectId={id} problems={problems ?? []} />
+    <ProblemsSection
+      clientId={project.client_id}
+      projectId={id}
+      problems={problems ?? []}
+      allFeatures={allFeatures ?? []}
+    />
   );
 }
