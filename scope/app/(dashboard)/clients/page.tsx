@@ -34,7 +34,7 @@ export default async function ClientsPage() {
 
       <div className="border rounded-lg divide-y">
         {clients?.length === 0 && (
-          <p className="p-6 text-sm text-gray-500 text-center">
+          <p className="p-6 text-sm text-gray-700 text-center">
             No clients yet. Add your first one above.
           </p>
         )}
@@ -46,7 +46,7 @@ export default async function ClientsPage() {
           >
             <div>
               <p className="font-medium">{c.company_name}</p>
-              <p className="text-sm text-gray-500">{c.industry || "No industry set"}</p>
+              <p className="text-sm text-gray-700">{c.industry || "No industry set"}</p>
             </div>
             <span
               className={`text-xs font-medium px-2 py-1 rounded-full ${statusColors[c.status]}`}

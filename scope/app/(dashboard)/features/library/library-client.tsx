@@ -50,7 +50,7 @@ export default function LibraryClient({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-sm text-gray-500">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
           <input
             type="checkbox"
             checked={showInactive}
@@ -93,16 +93,16 @@ export default function LibraryClient({
             <div key={f.id} className="p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className={`font-medium text-sm ${!f.is_active ? "text-gray-400 line-through" : ""}`}>
+                  <p className={`font-medium text-sm ${!f.is_active ? "text-gray-600 line-through" : ""}`}>
                     {f.name}
-                    <span className="text-xs text-gray-400 ml-2">({f.complexity})</span>
+                    <span className="text-xs text-gray-600 ml-2">({f.complexity})</span>
                   </p>
-                  {f.description && <p className="text-sm text-gray-500 mt-0.5">{f.description}</p>}
+                  {f.description && <p className="text-sm text-gray-700 mt-0.5">{f.description}</p>}
                   <p className="text-sm text-gray-600 mt-1">
                     {f.base_price != null ? `$${f.base_price}` : "No price set"}
                     {f.recurring_price != null && ` + $${f.recurring_price}/mo`}
                     {f.typical_hours != null && (
-                      <span className="text-gray-400"> · ~{f.typical_hours}h</span>
+                      <span className="text-gray-600"> · ~{f.typical_hours}h</span>
                     )}
                   </p>
 
@@ -118,7 +118,7 @@ export default function LibraryClient({
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => setEditingId(f.id)}
-                    className="text-xs text-gray-500 hover:text-black"
+                    className="text-xs text-gray-700 hover:text-black"
                   >
                     Edit
                   </button>
@@ -128,7 +128,7 @@ export default function LibraryClient({
                       else await reactivateFeature(f.id);
                       refresh();
                     }}
-                    className="text-xs text-gray-500 hover:text-black"
+                    className="text-xs text-gray-700 hover:text-black"
                   >
                     {f.is_active ? "Retire" : "Reactivate"}
                   </button>
@@ -199,7 +199,7 @@ function FeatureForm({
 
       <div className="grid grid-cols-3 gap-2">
         <div>
-          <label className="text-xs text-gray-500">One-time price</label>
+          <label className="text-xs text-gray-700">One-time price</label>
           <input
             name="base_price"
             type="number"
@@ -210,7 +210,7 @@ function FeatureForm({
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500">Monthly price</label>
+          <label className="text-xs text-gray-700">Monthly price</label>
           <input
             name="recurring_price"
             type="number"
@@ -221,7 +221,7 @@ function FeatureForm({
           />
         </div>
         <div>
-          <label className="text-xs text-gray-500">Typical hours</label>
+          <label className="text-xs text-gray-700">Typical hours</label>
           <input
             name="typical_hours"
             type="number"
@@ -290,7 +290,7 @@ function DependencyList({
                     await removeDependency(d.id);
                     onChanged();
                   }}
-                  className="text-gray-400 hover:text-red-600"
+                  className="text-gray-600 hover:text-red-600"
                 >
                   ×
                 </button>

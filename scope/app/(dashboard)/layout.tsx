@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   </Link>
 </div>
           <form action={logout}>
-            <button className="text-sm text-gray-500 hover:text-black">
+            <button className="text-sm text-gray-700 hover:text-black">
               Sign Out
             </button>
           </form>

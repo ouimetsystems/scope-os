@@ -27,7 +27,7 @@ export default async function ProjectQuotesPage({
       <h2 className="font-medium text-gray-900 mb-4">Quotes</h2>
 
       {quotes?.length === 0 && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-700">
           No quotes yet — generate one from the Features tab once you have priced features.
         </p>
       )}
@@ -41,7 +41,7 @@ export default async function ProjectQuotesPage({
           >
             <div>
               <p className="text-sm font-medium text-gray-900">
-                {q.quote_number} <span className="text-gray-500">v{q.version}</span>
+                {q.quote_number} <span className="text-gray-700">v{q.version}</span>
               </p>
               <p className="text-xs text-gray-600">${q.total_amount} one-time</p>
             </div>

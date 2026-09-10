@@ -44,7 +44,7 @@ export default function QuestionsPanel({
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [customText, setCustomText] = useState("");
   const [customCategory, setCustomCategory] = useState("Project-Specific");
-  const [adding, setAdding] = useState(false);
+  const [addingBulk, setAddingBulk] = useState(false);
 
   const usedLibraryIds = new Set(questions.map((q) => q.library_question_id).filter(Boolean));
   const available = library.filter(
@@ -65,6 +65,7 @@ export default function QuestionsPanel({
 
   const totalQ = questions.length;
   const answeredQ = questions.filter((q) => q.answer && q.answer.trim()).length;
+  const unansweredQ = totalQ - answeredQ;
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -84,9 +85,9 @@ export default function QuestionsPanel({
 
   async function handleBulkAdd() {
     if (selectedIds.size === 0) return;
-    setAdding(true);
+    setAddingBulk(true);
     await bulkAddQuestions(projectId, Array.from(selectedIds));
-    setAdding(false);
+    setAddingBulk(false);
     setSelectedIds(new Set());
     router.refresh();
   }
@@ -102,17 +103,27 @@ export default function QuestionsPanel({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-medium text-gray-900">Discovery Questions</h2>
-          <p className="text-xs text-gray-600">
+          <h2 className="font-medium text-gray-900">Questions</h2>
+          <p className="text-xs text-gray-700">
             {answeredQ}/{totalQ} answered
+            {unansweredQ > 0 && <span className="text-yellow-700 font-medium"> · {unansweredQ} unanswered</span>}
           </p>
         </div>
-        <button
-          onClick={() => setShowPicker(!showPicker)}
-          className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800"
-        >
-          {showPicker ? "Done Adding" : "+ Add Questions"}
-        </button>
+        <div className="flex items-center gap-2">
+          
+            href="/discovery/library"
+            target="_blank"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Manage Templates
+          </a>
+          <button
+            onClick={() => setShowPicker(!showPicker)}
+            className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800"
+          >
+            {showPicker ? "Done Adding" : "+ Add Questions"}
+          </button>
+        </div>
       </div>
 
       {showPicker && (
@@ -147,7 +158,7 @@ export default function QuestionsPanel({
 
           <div className="border rounded-lg divide-y max-h-96 overflow-y-auto bg-white">
             {Object.keys(availableGrouped).length === 0 && (
-              <p className="p-3 text-sm text-gray-500">No matching questions.</p>
+              <p className="p-3 text-sm text-gray-600">No matching questions.</p>
             )}
             {Object.entries(availableGrouped).map(([category, qs]) => (
               <div key={category}>
@@ -155,8 +166,8 @@ export default function QuestionsPanel({
                   onClick={() => toggleCollapse(category)}
                   className="w-full flex items-center justify-between px-3 pt-2 pb-1"
                 >
-                  <span className="text-xs font-semibold text-gray-500 uppercase">{category}</span>
-                  <span className="text-xs text-gray-400">{collapsed.has(category) ? "▸" : "▾"}</span>
+                  <span className="text-xs font-semibold text-gray-600 uppercase">{category}</span>
+                  <span className="text-xs text-gray-700">{collapsed.has(category) ? "▸" : "▾"}</span>
                 </button>
                 {!collapsed.has(category) &&
                   qs.map((q) => (
@@ -178,17 +189,17 @@ export default function QuestionsPanel({
 
           <button
             onClick={handleBulkAdd}
-            disabled={selectedIds.size === 0 || adding}
+            disabled={selectedIds.size === 0 || addingBulk}
             className="w-full rounded bg-black text-white px-3 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
           >
-            {adding ? "Adding..." : `Add ${selectedIds.size} Selected Question${selectedIds.size === 1 ? "" : "s"}`}
+            {addingBulk ? "Adding..." : `Add ${selectedIds.size} Selected Question${selectedIds.size === 1 ? "" : "s"}`}
           </button>
         </div>
       )}
 
       <div className="space-y-4">
         {Object.keys(addedGrouped).length === 0 && (
-          <p className="text-sm text-gray-500">No questions added yet.</p>
+          <p className="text-sm text-gray-600">No questions added yet.</p>
         )}
         {Object.entries(addedGrouped).map(([category, qs]) => (
           <div key={category}>
@@ -196,8 +207,8 @@ export default function QuestionsPanel({
               onClick={() => toggleCollapse(`added-${category}`)}
               className="w-full flex items-center justify-between mb-2"
             >
-              <span className="text-xs font-semibold text-gray-500 uppercase">{category}</span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs font-semibold text-gray-600 uppercase">{category}</span>
+              <span className="text-xs text-gray-700">
                 {collapsed.has(`added-${category}`) ? "▸" : "▾"}
               </span>
             </button>
@@ -253,29 +264,29 @@ function QuestionRow({
   return (
     <div
       className={`border-l-4 rounded-lg p-3 ${
-        hasAnswer ? "border-l-green-500 bg-green-50/40" : "border-l-yellow-500 bg-yellow-50/40"
+        hasAnswer ? "border-l-green-500 bg-green-50" : "border-l-yellow-500 bg-yellow-50"
       }`}
     >
-      <div className="flex items-start justify-between gap-2 mb-1">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-start gap-2 flex-1">
           <button
             disabled={flagging || !!question.flagged_problem_id}
-            title={question.flagged_problem_id ? "Already flagged as a Problem" : "Flag as Problem"}
+            title={question.flagged_problem_id ? "Already flagged as a Problem" : "Flag as Problem — one click"}
             onClick={async () => {
               setFlagging(true);
               await flagAsProblem(question.id, projectId, clientId);
               setFlagging(false);
               router.refresh();
             }}
-            className={`text-base leading-none ${
+            className={`shrink-0 flex items-center justify-center w-7 h-7 rounded-full border text-base leading-none transition-colors ${
               question.flagged_problem_id
-                ? "opacity-100 cursor-default"
-                : "opacity-40 hover:opacity-100 cursor-pointer"
+                ? "bg-orange-500 border-orange-500 text-white"
+                : "bg-white border-orange-400 text-orange-600 hover:bg-orange-100 cursor-pointer"
             }`}
           >
             🚩
           </button>
-          <p className="text-sm font-medium text-gray-900">{question.question}</p>
+          <p className="text-sm font-medium text-gray-900 pt-0.5">{question.question}</p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button
@@ -284,7 +295,8 @@ function QuestionRow({
               await reorderQuestion(question.id, projectId, "up");
               router.refresh();
             }}
-            className="text-xs text-gray-400 hover:text-gray-900 disabled:opacity-30"
+            className="w-6 h-6 flex items-center justify-center text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded disabled:opacity-30"
+            title="Move up"
           >
             ↑
           </button>
@@ -294,7 +306,8 @@ function QuestionRow({
               await reorderQuestion(question.id, projectId, "down");
               router.refresh();
             }}
-            className="text-xs text-gray-400 hover:text-gray-900 disabled:opacity-30"
+            className="w-6 h-6 flex items-center justify-center text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded disabled:opacity-30"
+            title="Move down"
           >
             ↓
           </button>
@@ -305,7 +318,7 @@ function QuestionRow({
                 router.refresh();
               }
             }}
-            className="text-xs text-red-600 hover:text-red-800 ml-2"
+            className="text-xs text-red-600 hover:text-red-800 ml-1"
           >
             Remove
           </button>
@@ -320,7 +333,10 @@ function QuestionRow({
         placeholder="Answer..."
         className="w-full border rounded px-3 py-2 text-sm text-gray-900 bg-white"
       />
-      {saving && <p className="text-xs text-gray-500 mt-1">Saving...</p>}
+      {saving && <p className="text-xs text-gray-600 mt-1">Saving...</p>}
+      {question.flagged_problem_id && (
+        <p className="text-xs text-orange-700 mt-1 font-medium">✓ Flagged as a Problem</p>
+      )}
     </div>
   );
 }

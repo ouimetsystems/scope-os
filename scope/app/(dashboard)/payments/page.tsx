@@ -58,7 +58,7 @@ export default async function PaymentsPage() {
 
       <section>
         <h2 className="font-medium text-sm text-gray-600 uppercase tracking-wide mb-2">Upcoming</h2>
-        {upcoming.length === 0 && <p className="text-sm text-gray-500">Nothing upcoming.</p>}
+        {upcoming.length === 0 && <p className="text-sm text-gray-700">Nothing upcoming.</p>}
         <div className="border rounded-lg divide-y">
           {upcoming.map((p) => (
             <PaymentRow key={p.id} payment={p} />
@@ -71,7 +71,7 @@ export default async function PaymentsPage() {
           Active Monthly Services
         </h2>
         {(monthlyServices ?? []).length === 0 && (
-          <p className="text-sm text-gray-500">No active monthly services.</p>
+          <p className="text-sm text-gray-700">No active monthly services.</p>
         )}
         <div className="border rounded-lg divide-y">
           {monthlyServices?.map((m) => (

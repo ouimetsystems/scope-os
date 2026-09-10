@@ -98,7 +98,7 @@ export default function BugsClient({
         />
       )}
 
-      {filtered.length === 0 && <p className="text-sm text-gray-500">No bugs.</p>}
+      {filtered.length === 0 && <p className="text-sm text-gray-700">No bugs.</p>}
 
       <div className="space-y-2">
         {filtered.map((bug) => (
@@ -187,7 +187,7 @@ export default function BugsClient({
                         await updateBugStatus(bug.id, projectId, "wont_fix");
                         refresh();
                       }}
-                      className="text-xs text-gray-500 hover:text-gray-800"
+                      className="text-xs text-gray-700 hover:text-gray-800"
                     >
                       Won't Fix
                     </button>

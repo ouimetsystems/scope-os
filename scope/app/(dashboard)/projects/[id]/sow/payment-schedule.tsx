@@ -39,7 +39,7 @@ export default function PaymentSchedule({
       <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Payment Schedule</h3>
 
       <div className="space-y-1">
-        {lines.length === 0 && <p className="text-sm text-gray-500">No payment lines yet.</p>}
+        {lines.length === 0 && <p className="text-sm text-gray-700">No payment lines yet.</p>}
         {lines.map((l) => (
           <div key={l.id} className="flex items-center justify-between text-sm">
             <span className="text-gray-900">

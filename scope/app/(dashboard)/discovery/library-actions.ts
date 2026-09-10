@@ -1,32 +1,19 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { libraryQuestionSchema } from "@/lib/validations/discovery";
 import { revalidatePath } from "next/cache";
 
 export async function addLibraryQuestion(formData: FormData) {
-  const parsed = libraryQuestionSchema.safeParse({
-    question: formData.get("question"),
-    category: formData.get("category") ?? "",
-  });
+  const question = formData.get("question") as string;
+  const category = (formData.get("category") as string) || null;
+  const isDefault = formData.get("is_default") === "on";
 
-  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
+  if (!question?.trim()) return { error: "Question is required" };
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("discovery_question_library").insert(parsed.data);
-
-  if (error) return { error: { form: [error.message] } };
-
-  revalidatePath("/discovery/library");
-  return { success: true };
-}
-
-export async function retireLibraryQuestion(questionId: string) {
   const supabase = await createClient();
   const { error } = await supabase
     .from("discovery_question_library")
-    .update({ is_active: false })
-    .eq("id", questionId);
+    .insert({ question, category, is_default: isDefault });
 
   if (error) return { error: error.message };
 
@@ -34,15 +21,18 @@ export async function retireLibraryQuestion(questionId: string) {
   return { success: true };
 }
 
-export async function reactivateLibraryQuestion(questionId: string) {
+export async function toggleQuestionActive(id: string, isActive: boolean) {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("discovery_question_library")
-    .update({ is_active: true })
-    .eq("id", questionId);
-
+  const { error } = await supabase.from("discovery_question_library").update({ is_active: isActive }).eq("id", id);
   if (error) return { error: error.message };
+  revalidatePath("/discovery/library");
+  return { success: true };
+}
 
+export async function toggleQuestionDefault(id: string, isDefault: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("discovery_question_library").update({ is_default: isDefault }).eq("id", id);
+  if (error) return { error: error.message };
   revalidatePath("/discovery/library");
   return { success: true };
 }

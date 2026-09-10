@@ -30,10 +30,10 @@ export default function NextSteps({
 
   return (
     <section>
-      <h2 className="font-medium mb-2 text-sm text-gray-500 uppercase tracking-wide">Next Steps</h2>
+      <h2 className="font-medium mb-2 text-sm text-gray-700 uppercase tracking-wide">Next Steps</h2>
 
       <div className="space-y-1 mb-3">
-        {nextSteps.length === 0 && <p className="text-sm text-gray-400">No next steps yet.</p>}
+        {nextSteps.length === 0 && <p className="text-sm text-gray-600">No next steps yet.</p>}
         {nextSteps.map((step) => (
           <div key={step.id} className="flex items-center gap-2 text-sm">
             <input
@@ -44,7 +44,7 @@ export default function NextSteps({
                 router.refresh();
               }}
             />
-            <span className={step.is_complete ? "line-through text-gray-400" : ""}>
+            <span className={step.is_complete ? "line-through text-gray-600" : ""}>
               {step.description}
             </span>
             <button

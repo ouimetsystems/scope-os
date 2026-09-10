@@ -80,7 +80,7 @@ export default async function ClientDetailPage({
             + New Project
           </Link>
         </div>
-        {projects?.length === 0 && <p className="text-sm text-gray-500">No projects yet.</p>}
+        {projects?.length === 0 && <p className="text-sm text-gray-700">No projects yet.</p>}
         <div className="border rounded-lg divide-y">
           {projects?.map((p) => (
             <Link

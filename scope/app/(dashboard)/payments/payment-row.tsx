@@ -52,7 +52,7 @@ export default function PaymentRow({ payment }: { payment: Payment }) {
               router.refresh();
             }
           }}
-          className="text-xs text-gray-500 hover:text-red-600"
+          className="text-xs text-gray-700 hover:text-red-600"
         >
           Cancel
         </button>

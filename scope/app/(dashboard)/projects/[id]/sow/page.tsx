@@ -77,7 +77,7 @@ export default async function ProjectSowPage({
           Included Features (from selected solutions)
         </h3>
         {(features ?? []).length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-700">
             No features yet — mark a solution as "selected" on the Problems & Solutions tab.
           </p>
         ) : (

@@ -24,9 +24,8 @@ export default async function ProjectLayout({
   const navItems = [
   { href: `/projects/${id}`, label: "Overview" },
   { href: `/projects/${id}/meetings`, label: "Meetings" },
-  { href: `/projects/${id}/questions`, label: "Discovery Questions" },
-  { href: `/projects/${id}/problems`, label: "Problems & Solutions" },
-  { href: `/projects/${id}/features`, label: "Features" },
+  { href: `/projects/${id}/questions`, label: "Questions" },
+  { href: `/projects/${id}/problems`, label: "Problems & Features" },
   { href: `/projects/${id}/quotes`, label: "Quotes" },
   { href: `/projects/${id}/sow`, label: "SOW" },
   { href: `/projects/${id}/dev-logs`, label: "Dev Log" },
@@ -57,7 +56,7 @@ export default async function ProjectLayout({
               {item.label}
             </Link>
           ))}
-          <span className="block px-3 py-2 rounded text-sm text-gray-400 cursor-not-allowed">
+          <span className="block px-3 py-2 rounded text-sm text-gray-600 cursor-not-allowed">
             Generate SOW <span className="text-xs">(soon)</span>
           </span>
         </nav>

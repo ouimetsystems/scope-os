@@ -59,7 +59,7 @@ export default function DevLogsClient({
       )}
 
       {logs.length === 0 && !adding && (
-        <p className="text-sm text-gray-500">No entries yet — log what you work on as you go.</p>
+        <p className="text-sm text-gray-700">No entries yet — log what you work on as you go.</p>
       )}
 
       <div className="space-y-3">

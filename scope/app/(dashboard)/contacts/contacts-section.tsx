@@ -40,7 +40,7 @@ export default function ContactsSection({
   return (
     <section>
       <div className="flex items-center justify-between mb-2">
-        <h2 className="font-medium text-sm text-gray-500 uppercase tracking-wide">Contacts</h2>
+        <h2 className="font-medium text-sm text-gray-700 uppercase tracking-wide">Contacts</h2>
         {!adding && (
           <button
             onClick={() => setAdding(true)}
@@ -52,7 +52,7 @@ export default function ContactsSection({
       </div>
 
       {contacts.length === 0 && !adding && (
-        <p className="text-sm text-gray-400">No contacts yet.</p>
+        <p className="text-sm text-gray-600">No contacts yet.</p>
       )}
 
       <div className="space-y-2">
@@ -64,15 +64,15 @@ export default function ContactsSection({
               <div>
                 <span className="font-medium">{c.full_name}</span>
                 {c.is_primary && (
-                  <span className="text-xs text-gray-400 ml-1">(primary)</span>
+                  <span className="text-xs text-gray-600 ml-1">(primary)</span>
                 )}
-                {c.role_title && <span className="text-gray-500"> — {c.role_title}</span>}
-                {c.email && <span className="text-gray-500"> · {c.email}</span>}
+                {c.role_title && <span className="text-gray-700"> — {c.role_title}</span>}
+                {c.email && <span className="text-gray-700"> · {c.email}</span>}
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditingId(c.id)}
-                  className="text-xs text-gray-500 hover:text-black"
+                  className="text-xs text-gray-700 hover:text-black"
                 >
                   Edit
                 </button>

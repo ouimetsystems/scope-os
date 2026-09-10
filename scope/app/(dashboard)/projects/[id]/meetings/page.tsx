@@ -27,7 +27,7 @@ export default async function ProjectMeetingsPage({
         </Link>
       </div>
 
-      {meetings?.length === 0 && <p className="text-sm text-gray-500">No meetings logged yet.</p>}
+      {meetings?.length === 0 && <p className="text-sm text-gray-700">No meetings logged yet.</p>}
 
       <div className="border rounded-lg divide-y">
         {meetings?.map((m) => (

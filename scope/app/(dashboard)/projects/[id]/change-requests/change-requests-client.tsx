@@ -72,7 +72,7 @@ export default function ChangeRequestsClient({
       )}
 
       {changeRequests.length === 0 && !adding && (
-        <p className="text-sm text-gray-500">No change requests yet.</p>
+        <p className="text-sm text-gray-700">No change requests yet.</p>
       )}
 
       <div className="space-y-3">
@@ -81,7 +81,7 @@ export default function ChangeRequestsClient({
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {cr.title} <span className="text-xs text-gray-500">({cr.size})</span>
+                  {cr.title} <span className="text-xs text-gray-700">({cr.size})</span>
                 </p>
                 {cr.description && <p className="text-sm text-gray-700 mt-1">{cr.description}</p>}
                 {cr.reason && <p className="text-xs text-gray-600 mt-1">Reason: {cr.reason}</p>}
