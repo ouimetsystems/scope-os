@@ -19,6 +19,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   <Link href="/features/library" className="text-sm text-gray-700 hover:text-gray-900">
     Feature Library
   </Link>
+  <Link href="/discovery/library" className="text-sm text-gray-700 hover:text-gray-900">
+    Questions Library
+  </Link>
 </div>
           <form action={logout}>
             <button className="text-sm text-gray-700 hover:text-black">

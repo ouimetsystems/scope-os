@@ -9,6 +9,7 @@ import {
   createCustomFeature,
   linkProblemToFeature,
   unlinkProblemFromFeature,
+  updateProblemTitle,
   updateFeatureDevStatus,
   updateFeatureTestStatus,
   deleteFeature,
@@ -118,6 +119,7 @@ export default function ProblemFeatureBoard({
             <h2 className="font-medium text-gray-900">Problems</h2>
             {!addingProblem && (
               <button
+                type="button"
                 onClick={() => setAddingProblem(true)}
                 className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800"
               >
@@ -167,22 +169,13 @@ export default function ProblemFeatureBoard({
                 className="border rounded-lg p-3 cursor-move bg-white hover:shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{p.title}</p>
-                    {p.description && <p className="text-xs text-gray-700 mt-0.5">{p.description}</p>}
-                    {p.problem_features.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {p.problem_features.map((pf) => (
-                          <span
-                            key={pf.feature_id}
-                            className="text-xs bg-blue-50 text-blue-800 rounded-full px-2 py-0.5"
-                          >
-                            → {pf.features?.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <EditableTitle
+                    title={p.title}
+                    onSave={async (newTitle) => {
+                      await updateProblemTitle(p.id, projectId, newTitle);
+                      refresh();
+                    }}
+                  />
                   <select
                     value={p.status}
                     onChange={async (e) => {
@@ -197,6 +190,18 @@ export default function ProblemFeatureBoard({
                   </select>
                 </div>
 
+                {p.description && <p className="text-xs text-gray-700 mt-1">{p.description}</p>}
+
+                {p.problem_features.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {p.problem_features.map((pf) => (
+                      <span key={pf.feature_id} className="text-xs bg-blue-50 text-blue-800 rounded-full px-2 py-0.5">
+                        → {pf.features?.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 <div className="flex gap-3 mt-2">
                   <QuickCreateFeature
                     problemTitle={p.title}
@@ -207,9 +212,8 @@ export default function ProblemFeatureBoard({
                   />
                   {features.length > 0 && (
                     <LinkExistingFeature
-                      problemId={p.id}
-                      features={features}
                       alreadyLinked={p.problem_features.map((pf) => pf.feature_id)}
+                      features={features}
                       onLink={async (featureId) => {
                         await linkProblemToFeature(p.id, featureId, projectId);
                         refresh();
@@ -217,6 +221,7 @@ export default function ProblemFeatureBoard({
                     />
                   )}
                   <button
+                    type="button"
                     onClick={async () => {
                       if (confirm("Delete this problem?")) {
                         await deleteProblem(p.id, projectId);
@@ -238,7 +243,8 @@ export default function ProblemFeatureBoard({
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-medium text-gray-900">Features</h2>
             <button
-              onClick={() => setAddingFeature(!addingFeature)}
+              type="button"
+              onClick={() => setAddingFeature((v) => !v)}
               className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800"
             >
               {addingFeature ? "Cancel" : "+ Add"}
@@ -285,6 +291,7 @@ export default function ProblemFeatureBoard({
                           >
                             {pf.problems?.title}
                             <button
+                              type="button"
                               onClick={async () => {
                                 await unlinkProblemFromFeature(pf.problem_id, f.id, projectId);
                                 refresh();
@@ -299,6 +306,7 @@ export default function ProblemFeatureBoard({
                     )}
                   </div>
                   <button
+                    type="button"
                     onClick={async () => {
                       if (confirm("Delete this feature?")) {
                         await deleteFeature(f.id, projectId);
@@ -343,6 +351,43 @@ export default function ProblemFeatureBoard({
         </div>
       </div>
     </div>
+  );
+}
+
+function EditableTitle({ title, onSave }: { title: string; onSave: (newTitle: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(title);
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={() => {
+          setEditing(false);
+          if (value.trim() && value !== title) onSave(value.trim());
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+          if (e.key === "Escape") {
+            setValue(title);
+            setEditing(false);
+          }
+        }}
+        className="text-sm font-medium text-gray-900 border rounded px-2 py-1 flex-1"
+      />
+    );
+  }
+
+  return (
+    <p
+      onClick={() => setEditing(true)}
+      title="Click to edit"
+      className="text-sm font-medium text-gray-900 cursor-text hover:bg-gray-50 rounded px-1 -mx-1 flex-1"
+    >
+      {title}
+    </p>
   );
 }
 
@@ -408,7 +453,7 @@ function QuickCreateFeature({
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-xs text-blue-600 hover:underline">
+      <button type="button" onClick={() => setOpen(true)} className="text-xs text-blue-600 hover:underline">
         + Create Feature
       </button>
     );
@@ -430,6 +475,7 @@ function QuickCreateFeature({
       />
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => {
             onCreate(name, description);
             setOpen(false);
@@ -438,7 +484,7 @@ function QuickCreateFeature({
         >
           Create
         </button>
-        <button onClick={() => setOpen(false)} className="text-xs text-gray-700">
+        <button type="button" onClick={() => setOpen(false)} className="text-xs text-gray-700">
           Cancel
         </button>
       </div>
@@ -447,12 +493,10 @@ function QuickCreateFeature({
 }
 
 function LinkExistingFeature({
-  problemId,
   features,
   alreadyLinked,
   onLink,
 }: {
-  problemId: string;
   features: Feature[];
   alreadyLinked: string[];
   onLink: (featureId: string) => void;
@@ -462,7 +506,7 @@ function LinkExistingFeature({
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-xs text-blue-600 hover:underline">
+      <button type="button" onClick={() => setOpen(true)} className="text-xs text-blue-600 hover:underline">
         Link Feature
       </button>
     );
@@ -533,6 +577,7 @@ function AddFeaturePanel({
         {filtered.map((f) => (
           <button
             key={f.id}
+            type="button"
             onClick={async () => {
               await createFeatureFromLibrary(projectId, f.id);
               onDone();

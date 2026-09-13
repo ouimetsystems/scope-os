@@ -109,21 +109,12 @@ export default function QuestionsPanel({
             {unansweredQ > 0 && <span className="text-yellow-700 font-medium"> · {unansweredQ} unanswered</span>}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          
-            href="/discovery/library"
-            target="_blank"
-            className="text-sm text-blue-600 hover:underline"
-          >
-            Manage Templates
-          </a>
-          <button
-            onClick={() => setShowPicker(!showPicker)}
-            className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800"
-          >
-            {showPicker ? "Done Adding" : "+ Add Questions"}
-          </button>
-        </div>
+        <button
+          onClick={() => setShowPicker(!showPicker)}
+          className="text-sm bg-black text-white rounded px-3 py-1.5 hover:bg-gray-800"
+        >
+          {showPicker ? "Done Adding" : "+ Add Questions"}
+        </button>
       </div>
 
       {showPicker && (
@@ -167,7 +158,7 @@ export default function QuestionsPanel({
                   className="w-full flex items-center justify-between px-3 pt-2 pb-1"
                 >
                   <span className="text-xs font-semibold text-gray-600 uppercase">{category}</span>
-                  <span className="text-xs text-gray-700">{collapsed.has(category) ? "▸" : "▾"}</span>
+                  <span className="text-xs text-gray-500">{collapsed.has(category) ? "▸" : "▾"}</span>
                 </button>
                 {!collapsed.has(category) &&
                   qs.map((q) => (
@@ -208,7 +199,7 @@ export default function QuestionsPanel({
               className="w-full flex items-center justify-between mb-2"
             >
               <span className="text-xs font-semibold text-gray-600 uppercase">{category}</span>
-              <span className="text-xs text-gray-700">
+              <span className="text-xs text-gray-500">
                 {collapsed.has(`added-${category}`) ? "▸" : "▾"}
               </span>
             </button>
@@ -250,6 +241,7 @@ function QuestionRow({
   const [value, setValue] = useState(question.answer ?? "");
   const [saving, setSaving] = useState(false);
   const [flagging, setFlagging] = useState(false);
+  const [flagged, setFlagged] = useState(!!question.flagged_problem_id);
 
   const hasAnswer = value.trim().length > 0;
 
@@ -261,6 +253,16 @@ function QuestionRow({
     setSaving(false);
   }
 
+  async function handleFlag() {
+    setFlagging(true);
+    const result = await flagAsProblem(question.id, projectId, clientId);
+    setFlagging(false);
+    if (result?.success) {
+      setFlagged(true);
+      router.refresh();
+    }
+  }
+
   return (
     <div
       className={`border-l-4 rounded-lg p-3 ${
@@ -270,16 +272,12 @@ function QuestionRow({
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-start gap-2 flex-1">
           <button
-            disabled={flagging || !!question.flagged_problem_id}
-            title={question.flagged_problem_id ? "Already flagged as a Problem" : "Flag as Problem — one click"}
-            onClick={async () => {
-              setFlagging(true);
-              await flagAsProblem(question.id, projectId, clientId);
-              setFlagging(false);
-              router.refresh();
-            }}
+            type="button"
+            disabled={flagging || flagged}
+            title={flagged ? "Already flagged as a Problem" : "Flag as Problem — one click"}
+            onClick={handleFlag}
             className={`shrink-0 flex items-center justify-center w-7 h-7 rounded-full border text-base leading-none transition-colors ${
-              question.flagged_problem_id
+              flagged
                 ? "bg-orange-500 border-orange-500 text-white"
                 : "bg-white border-orange-400 text-orange-600 hover:bg-orange-100 cursor-pointer"
             }`}
@@ -334,9 +332,7 @@ function QuestionRow({
         className="w-full border rounded px-3 py-2 text-sm text-gray-900 bg-white"
       />
       {saving && <p className="text-xs text-gray-600 mt-1">Saving...</p>}
-      {question.flagged_problem_id && (
-        <p className="text-xs text-orange-700 mt-1 font-medium">✓ Flagged as a Problem</p>
-      )}
+      {flagged && <p className="text-xs text-orange-700 mt-1 font-medium">✓ Flagged as a Problem</p>}
     </div>
   );
 }

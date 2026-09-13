@@ -22,7 +22,6 @@ export async function createFeatureFromProblem(
   await supabase.from("problem_features").insert({ problem_id: problemId, feature_id: feature.id });
 
   revalidatePath(`/projects/${projectId}/problems`);
-  revalidatePath(`/projects/${projectId}/features`);
   return { success: true, featureId: feature.id };
 }
 
@@ -53,7 +52,7 @@ export async function createFeatureFromLibrary(projectId: string, featureLibrary
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/projects/${projectId}/features`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true, featureId: feature.id };
 }
 
@@ -71,7 +70,7 @@ export async function createCustomFeature(projectId: string, formData: FormData)
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/projects/${projectId}/features`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true, featureId: data.id };
 }
 
@@ -81,11 +80,9 @@ export async function linkProblemToFeature(problemId: string, featureId: string,
     .from("problem_features")
     .insert({ problem_id: problemId, feature_id: featureId });
 
-  // Ignore duplicate-link errors (unique constraint) — already linked is fine
-  if (error && !error.message.includes("duplicate")) return { error: error.message };
+  if (error && !error.message.toLowerCase().includes("duplicate")) return { error: error.message };
 
   revalidatePath(`/projects/${projectId}/problems`);
-  revalidatePath(`/projects/${projectId}/features`);
   return { success: true };
 }
 
@@ -100,7 +97,18 @@ export async function unlinkProblemFromFeature(problemId: string, featureId: str
   if (error) return { error: error.message };
 
   revalidatePath(`/projects/${projectId}/problems`);
-  revalidatePath(`/projects/${projectId}/features`);
+  return { success: true };
+}
+
+export async function updateProblemTitle(problemId: string, projectId: string, title: string) {
+  if (!title.trim()) return { error: "Title cannot be empty" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("problems").update({ title }).eq("id", problemId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true };
 }
 
@@ -124,33 +132,33 @@ export async function updateFeatureDetails(featureId: string, projectId: string,
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/projects/${projectId}/features`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true };
 }
 
 export async function updateFeatureDevStatus(featureId: string, projectId: string, status: string) {
   const supabase = await createClient();
   const updates: any = { dev_status: status };
-  if (status === "complete") updates.test_status = "unconfirmed"; // ready for QA to pick up
+  if (status === "complete") updates.test_status = "unconfirmed";
 
   const { error } = await supabase.from("features").update(updates).eq("id", featureId);
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/projects/${projectId}/features`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true };
 }
 
 export async function updateFeatureTestStatus(featureId: string, projectId: string, status: string) {
   const supabase = await createClient();
   const updates: any = { test_status: status };
-  if (status === "confirmed") updates.dev_status = "complete"; // auto-complete on confirm
+  if (status === "confirmed") updates.dev_status = "complete";
 
   const { error } = await supabase.from("features").update(updates).eq("id", featureId);
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/projects/${projectId}/features`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true };
 }
 
@@ -160,6 +168,6 @@ export async function deleteFeature(featureId: string, projectId: string) {
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/projects/${projectId}/features`);
+  revalidatePath(`/projects/${projectId}/problems`);
   return { success: true };
 }
