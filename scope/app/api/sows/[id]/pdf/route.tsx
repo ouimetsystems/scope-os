@@ -43,14 +43,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .eq("sow_id", id)
     .maybeSingle();
 
-  const { data: solutions } = project
-    ? await supabase.from("solutions").select("id").eq("project_id", project.id).eq("status", "selected")
-    : { data: [] };
-
-  const solutionIds = (solutions ?? []).map((s) => s.id);
-
-  const { data: features } = solutionIds.length
-    ? await supabase.from("solution_features").select("name, description").in("solution_id", solutionIds)
+  const { data: features } = project
+    ? await supabase.from("features").select("name, description").eq("project_id", project.id)
     : { data: [] };
 
   const { data: paymentLines } = await supabase

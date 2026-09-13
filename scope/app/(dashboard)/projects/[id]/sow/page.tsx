@@ -36,17 +36,10 @@ export default async function ProjectSowPage({
   const { data: sow } = await supabase.from("sows").select("*").eq("id", project.sow_id).single();
   if (!sow) notFound();
 
-  const { data: solutions } = await supabase
-    .from("solutions")
-    .select("id")
-    .eq("project_id", id)
-    .eq("status", "selected");
-
-  const solutionIds = (solutions ?? []).map((s) => s.id);
-
-  const { data: features } = solutionIds.length
-    ? await supabase.from("solution_features").select("name, description").in("solution_id", solutionIds)
-    : { data: [] };
+  const { data: features } = await supabase
+    .from("features")
+    .select("name, description")
+    .eq("project_id", id);
 
   const { data: paymentLines } = await supabase
     .from("sow_payment_schedule")

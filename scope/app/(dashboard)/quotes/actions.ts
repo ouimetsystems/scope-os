@@ -37,17 +37,10 @@ export async function createQuoteFromProject(projectId: string) {
 
   if (!project) return { error: "Project not found" };
 
-  const { data: solutions } = await supabase
-    .from("solutions")
-    .select("id")
-    .eq("project_id", projectId)
-    .eq("status", "selected");
-
-  const solutionIds = (solutions ?? []).map((s) => s.id);
-
-  const { data: features } = solutionIds.length
-    ? await supabase.from("solution_features").select("price, recurring_price").in("solution_id", solutionIds)
-    : { data: [] };
+  const { data: features } = await supabase
+    .from("features")
+    .select("price, recurring_price")
+    .eq("project_id", projectId);
 
   const totalAmount = (features ?? []).reduce((sum, f) => sum + (f.price ?? 0), 0);
 
@@ -79,17 +72,10 @@ export async function reviseQuote(quoteId: string) {
   const { data: oldQuote } = await supabase.from("quotes").select("*").eq("id", quoteId).single();
   if (!oldQuote) return { error: "Quote not found" };
 
-  const { data: solutions } = await supabase
-    .from("solutions")
-    .select("id")
-    .eq("project_id", oldQuote.project_id)
-    .eq("status", "selected");
-
-  const solutionIds = (solutions ?? []).map((s) => s.id);
-
-  const { data: features } = solutionIds.length
-    ? await supabase.from("solution_features").select("price, recurring_price").in("solution_id", solutionIds)
-    : { data: [] };
+  const { data: features } = await supabase
+    .from("features")
+    .select("price, recurring_price")
+    .eq("project_id", oldQuote.project_id);
 
   const totalAmount = (features ?? []).reduce((sum, f) => sum + (f.price ?? 0), 0);
 
