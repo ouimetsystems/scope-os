@@ -57,6 +57,8 @@ export async function createFeatureFromLibrary(projectId: string, featureLibrary
 }
 
 export async function createCustomFeature(projectId: string, formData: FormData) {
+  console.log("createCustomFeature called. projectId:", projectId, "name:", formData.get("name"));
+
   const name = formData.get("name") as string;
   const description = (formData.get("description") as string) || null;
   if (!name?.trim()) return { error: "Name is required" };
@@ -67,6 +69,8 @@ export async function createCustomFeature(projectId: string, formData: FormData)
     .insert({ project_id: projectId, name, description })
     .select("id")
     .single();
+
+  console.log("Insert result:", data, "Error:", error);
 
   if (error) return { error: error.message };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProblem, updateProblemStatus, deleteProblem } from "@/app/(dashboard)/problems/actions";
@@ -14,6 +15,7 @@ import {
   updateFeatureTestStatus,
   deleteFeature,
 } from "@/app/(dashboard)/features/project-actions";
+import Link from "next/dist/client/link";
 
 type LibFeature = { id: string; name: string; category: string | null };
 
@@ -89,7 +91,8 @@ export default function ProblemFeatureBoard({
     e.preventDefault();
     const problemId = e.dataTransfer.getData("problemId");
     if (problemId) {
-      await linkProblemToFeature(problemId, featureId, projectId);
+      const result = await linkProblemToFeature(problemId, featureId, projectId);
+      if (result?.error) alert("Error linking: " + result.error);
       refresh();
     }
     setDragOverFeature(null);
@@ -113,7 +116,6 @@ export default function ProblemFeatureBoard({
       </div>
 
       <div className="grid grid-cols-2 gap-6">
-        {/* PROBLEMS COLUMN */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-medium text-gray-900">Problems</h2>
@@ -172,14 +174,16 @@ export default function ProblemFeatureBoard({
                   <EditableTitle
                     title={p.title}
                     onSave={async (newTitle) => {
-                      await updateProblemTitle(p.id, projectId, newTitle);
+                      const result = await updateProblemTitle(p.id, projectId, newTitle);
+                      if (result?.error) alert("Error: " + result.error);
                       refresh();
                     }}
                   />
                   <select
                     value={p.status}
                     onChange={async (e) => {
-                      await updateProblemStatus(p.id, projectId, e.target.value);
+                      const result = await updateProblemStatus(p.id, projectId, e.target.value);
+                      if (result?.error) alert("Error: " + result.error);
                       refresh();
                     }}
                     className={`text-xs rounded-full px-2 py-1 border-none shrink-0 ${statusColors[p.status]}`}
@@ -206,8 +210,12 @@ export default function ProblemFeatureBoard({
                   <QuickCreateFeature
                     problemTitle={p.title}
                     onCreate={async (name, description) => {
-                      await createFeatureFromProblem(projectId, p.id, name, description);
-                      refresh();
+                      const result = await createFeatureFromProblem(projectId, p.id, name, description);
+                      if (result?.error) {
+                        alert("Error creating feature: " + result.error);
+                      } else {
+                        refresh();
+                      }
                     }}
                   />
                   {features.length > 0 && (
@@ -215,7 +223,8 @@ export default function ProblemFeatureBoard({
                       alreadyLinked={p.problem_features.map((pf) => pf.feature_id)}
                       features={features}
                       onLink={async (featureId) => {
-                        await linkProblemToFeature(p.id, featureId, projectId);
+                        const result = await linkProblemToFeature(p.id, featureId, projectId);
+                        if (result?.error) alert("Error: " + result.error);
                         refresh();
                       }}
                     />
@@ -224,7 +233,8 @@ export default function ProblemFeatureBoard({
                     type="button"
                     onClick={async () => {
                       if (confirm("Delete this problem?")) {
-                        await deleteProblem(p.id, projectId);
+                        const result = await deleteProblem(p.id, projectId);
+                        if (result?.error) alert("Error: " + result.error);
                         refresh();
                       }
                     }}
@@ -238,7 +248,6 @@ export default function ProblemFeatureBoard({
           </div>
         </div>
 
-        {/* FEATURES COLUMN */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-medium text-gray-900">Features</h2>
@@ -280,7 +289,12 @@ export default function ProblemFeatureBoard({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{f.name}</p>
+                    <Link
+                      href={`/features/${f.id}`}
+                    className="text-sm font-medium text-gray-900 hover:underline"
+                    >
+                      {f.name} →
+                    </Link>
                     {f.description && <p className="text-xs text-gray-700">{f.description}</p>}
                     {f.problem_features.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
@@ -293,7 +307,8 @@ export default function ProblemFeatureBoard({
                             <button
                               type="button"
                               onClick={async () => {
-                                await unlinkProblemFromFeature(pf.problem_id, f.id, projectId);
+                                const result = await unlinkProblemFromFeature(pf.problem_id, f.id, projectId);
+                                if (result?.error) alert("Error: " + result.error);
                                 refresh();
                               }}
                               className="text-orange-500 hover:text-red-600"
@@ -309,7 +324,8 @@ export default function ProblemFeatureBoard({
                     type="button"
                     onClick={async () => {
                       if (confirm("Delete this feature?")) {
-                        await deleteFeature(f.id, projectId);
+                        const result = await deleteFeature(f.id, projectId);
+                        if (result?.error) alert("Error: " + result.error);
                         refresh();
                       }
                     }}
@@ -322,7 +338,8 @@ export default function ProblemFeatureBoard({
                   <select
                     value={f.dev_status}
                     onChange={async (e) => {
-                      await updateFeatureDevStatus(f.id, projectId, e.target.value);
+                      const result = await updateFeatureDevStatus(f.id, projectId, e.target.value);
+                      if (result?.error) alert("Error: " + result.error);
                       refresh();
                     }}
                     className={`text-xs rounded-full px-2 py-1 border-none ${devColors[f.dev_status]}`}
@@ -335,7 +352,8 @@ export default function ProblemFeatureBoard({
                   <select
                     value={f.test_status}
                     onChange={async (e) => {
-                      await updateFeatureTestStatus(f.id, projectId, e.target.value);
+                      const result = await updateFeatureTestStatus(f.id, projectId, e.target.value);
+                      if (result?.error) alert("Error: " + result.error);
                       refresh();
                     }}
                     className={`text-xs rounded-full px-2 py-1 border-none ${testColors[f.test_status]}`}
@@ -400,34 +418,49 @@ function ProblemForm({
   projectId: string;
   onDone: () => void;
 }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [pending, setPending] = useState(false);
 
+  async function handleSubmit() {
+    if (!title.trim()) {
+      alert("Title is required");
+      return;
+    }
+    setPending(true);
+    const formData = new FormData();
+    formData.set("title", title);
+    formData.set("description", description);
+    const result = await createProblem(clientId, projectId, formData);
+    setPending(false);
+    if (result?.error) {
+      alert("Error: " + JSON.stringify(result.error));
+      return;
+    }
+    onDone();
+  }
+
   return (
-    <form
-      action={async (formData) => {
-        setPending(true);
-        await createProblem(clientId, projectId, formData);
-        setPending(false);
-        onDone();
-      }}
-      className="space-y-2 border rounded-lg p-3 bg-gray-50 mb-3"
-    >
+    <div className="space-y-2 border rounded-lg p-3 bg-gray-50 mb-3">
       <input
-        name="title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
         placeholder="Problem title *"
-        required
         autoFocus
         className="w-full border rounded px-3 py-2 text-sm text-gray-900"
       />
       <textarea
-        name="description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
         placeholder="Description"
         rows={2}
         className="w-full border rounded px-3 py-2 text-sm text-gray-900"
       />
       <div className="flex gap-2">
         <button
+          type="button"
           disabled={pending}
+          onClick={handleSubmit}
           className="rounded bg-black text-white px-3 py-1.5 text-sm hover:bg-gray-800 disabled:opacity-50"
         >
           {pending ? "Saving..." : "Add"}
@@ -436,7 +469,7 @@ function ProblemForm({
           Cancel
         </button>
       </div>
-    </form>
+    </div>
   );
 }
 
@@ -477,6 +510,10 @@ function QuickCreateFeature({
         <button
           type="button"
           onClick={() => {
+            if (!name.trim()) {
+              alert("Name is required");
+              return;
+            }
             onCreate(name, description);
             setOpen(false);
           }}
@@ -546,26 +583,56 @@ function AddFeaturePanel({
   library: LibFeature[];
   onDone: () => void;
 }) {
+  const [name, setName] = useState("");
   const [search, setSearch] = useState("");
+  const [pending, setPending] = useState(false);
   const filtered = library.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()));
+
+  async function handleAddCustom() {
+    if (!name.trim()) {
+      alert("Name is required");
+      return;
+    }
+    setPending(true);
+    const formData = new FormData();
+    formData.set("name", name);
+    const result = await createCustomFeature(projectId, formData);
+    setPending(false);
+    if (result?.error) {
+      alert("Error creating feature: " + JSON.stringify(result.error));
+      return;
+    }
+    setName("");
+    onDone();
+  }
+
+  async function handlePickFromLibrary(featureId: string) {
+    const result = await createFeatureFromLibrary(projectId, featureId);
+    if (result?.error) {
+      alert("Error: " + result.error);
+      return;
+    }
+    onDone();
+  }
 
   return (
     <div className="border rounded-lg p-3 bg-gray-50 mb-3 space-y-2">
-      <form
-        action={async (formData) => {
-          await createCustomFeature(projectId, formData);
-          onDone();
-        }}
-        className="flex gap-2"
-      >
+      <div className="flex gap-2">
         <input
-          name="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           placeholder="Custom feature name *"
-          required
           className="flex-1 border rounded px-3 py-2 text-sm text-gray-900"
         />
-        <button className="rounded bg-black text-white px-3 py-2 text-sm hover:bg-gray-800 shrink-0">Add</button>
-      </form>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={handleAddCustom}
+          className="rounded bg-black text-white px-3 py-2 text-sm hover:bg-gray-800 shrink-0 disabled:opacity-50"
+        >
+          {pending ? "Adding..." : "Add"}
+        </button>
+      </div>
 
       <input
         value={search}
@@ -578,10 +645,7 @@ function AddFeaturePanel({
           <button
             key={f.id}
             type="button"
-            onClick={async () => {
-              await createFeatureFromLibrary(projectId, f.id);
-              onDone();
-            }}
+            onClick={() => handlePickFromLibrary(f.id)}
             className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 text-gray-900"
           >
             {f.name} <span className="text-xs text-gray-600">({f.category})</span>

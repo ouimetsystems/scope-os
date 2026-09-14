@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import QuestionsPanel from "@/app/(dashboard)/discovery/questions-panel";
+import { notFound } from "next/navigation";
+import QuestionsPanel from "./questions-panel";
 
 export default async function ProjectQuestionsPage({
   params,
@@ -9,13 +10,16 @@ export default async function ProjectQuestionsPage({
   const { id } = await params;
   const supabase = await createClient();
 
+  const { data: project } = await supabase.from("projects").select("id, client_id").eq("id", id).single();
+  if (!project) notFound();
+
   const [{ data: questions }, { data: library }] = await Promise.all([
     supabase
       .from("discovery_session_questions")
       .select("*")
       .eq("project_id", id)
-      .order("sort_order")
-      .order("created_at"),
+      .order("category")
+      .order("sort_order"),
     supabase
       .from("discovery_question_library")
       .select("*")
@@ -25,9 +29,11 @@ export default async function ProjectQuestionsPage({
   ]);
 
   return (
-    <div>
-      <h2 className="font-medium text-gray-900 mb-4">Discovery Questions</h2>
-      <QuestionsPanel projectId={id} questions={questions ?? []} library={library ?? []} />
-    </div>
+    <QuestionsPanel
+      projectId={id}
+      clientId={project.client_id}
+      questions={questions ?? []}
+      library={library ?? []}
+    />
   );
 }

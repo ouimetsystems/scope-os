@@ -13,7 +13,11 @@ export default async function ProjectProblemsPage({
   const { data: project } = await supabase.from("projects").select("id, client_id").eq("id", id).single();
   if (!project) notFound();
 
-  const [{ data: problems }, { data: features }, { data: library }] = await Promise.all([
+  const [
+    { data: problems, error: problemsError },
+    { data: features, error: featuresError },
+    { data: library, error: libraryError },
+  ] = await Promise.all([
     supabase
       .from("problems")
       .select("*, problem_features(feature_id, features(id, name))")
@@ -27,6 +31,11 @@ export default async function ProjectProblemsPage({
       .order("created_at"),
     supabase.from("feature_library").select("*").eq("is_active", true).order("category").order("name"),
   ]);
+
+  console.log("Problems error:", problemsError);
+  console.log("Features error:", featuresError);
+  console.log("Library error:", libraryError);
+  console.log("Features data:", features);
 
   return (
     <ProblemFeatureBoard
