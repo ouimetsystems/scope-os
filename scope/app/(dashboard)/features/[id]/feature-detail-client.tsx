@@ -39,84 +39,79 @@ export default function FeatureDetailClient({
   }
 
   return (
-    <form action={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-3 border rounded-lg p-4 bg-gray-50">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Feature Name</label>
         <input
           name="name"
+          placeholder="Feature name *"
+          required
           defaultValue={feature.name}
-          className="w-full border rounded px-3 py-2 text-sm text-gray-900"
+          className="w-full border rounded px-3 py-2 text-sm"
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-        <textarea
-          name="description"
-          defaultValue={feature.description ?? ""}
-          rows={3}
-          placeholder="What this feature does, for the client and for the SOW..."
-          className="w-full border rounded px-3 py-2 text-sm text-gray-900"
-        />
+      <textarea
+        name="description"
+        placeholder="Description"
+        rows={2}
+        defaultValue={feature.description ?? ""}
+        className="w-full border rounded px-3 py-2 text-sm"
+      />
+
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="text-xs text-gray-700">One-time price</label>
+          <input
+            name="price"
+            type="number"
+            step="0.01"
+            placeholder="e.g. 500"
+            defaultValue={feature.price ?? ""}
+            className="w-full border rounded px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-gray-700">Monthly price</label>
+          <input
+            name="recurring_price"
+            type="number"
+            step="0.01"
+            placeholder="e.g. 20"
+            defaultValue={feature.recurring_price ?? ""}
+            className="w-full border rounded px-3 py-2 text-sm"
+          />
+        </div>
       </div>
+      {feature.price == null && feature.recurring_price == null && (
+        <p className="text-xs text-yellow-700">Not applied to Quote/SOW yet — needs a price.</p>
+      )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">User Flow</label>
+        <label className="text-xs text-gray-700">User Flow</label>
         <textarea
           name="user_flow"
           defaultValue={feature.user_flow ?? ""}
           rows={4}
           placeholder={"Step by step, e.g.\n1. User opens inventory\n2. Selects product\n3. Enters quantity\n4. Saves"}
-          className="w-full border rounded px-3 py-2 text-sm text-gray-900"
+          className="w-full border rounded px-3 py-2 text-sm"
         />
       </div>
 
-      <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
-        <p className="text-xs font-medium text-gray-700 uppercase tracking-wide">Pricing (used in Quotes & SOW)</p>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs text-gray-700 mb-1">One-time Price</label>
-            <input
-              name="price"
-              type="number"
-              step="0.01"
-              defaultValue={feature.price ?? ""}
-              placeholder="e.g. 500"
-              className="w-full border rounded px-3 py-2 text-sm text-gray-900"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-700 mb-1">Monthly Price</label>
-            <input
-              name="recurring_price"
-              type="number"
-              step="0.01"
-              defaultValue={feature.recurring_price ?? ""}
-              placeholder="e.g. 20"
-              className="w-full border rounded px-3 py-2 text-sm text-gray-900"
-            />
-          </div>
-        </div>
-        {feature.price == null && feature.recurring_price == null && (
-          <p className="text-xs text-yellow-700">Not applied to Quote/SOW yet — needs a price.</p>
-        )}
-      </div>
-
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
+        <label className="text-xs text-gray-700">Internal Notes</label>
         <textarea
           name="notes"
           defaultValue={feature.notes ?? ""}
-          rows={3}
+          rows={2}
           placeholder="Anything worth remembering — not shown to the client"
-          className="w-full border rounded px-3 py-2 text-sm text-gray-900"
+          className="w-full border rounded px-3 py-2 text-sm"
         />
       </div>
 
       <div className="flex items-center gap-3">
         <button
           disabled={pending}
-          className="rounded bg-black text-white px-4 py-2 text-sm hover:bg-gray-800 disabled:opacity-50"
+          className="rounded bg-black text-white px-3 py-1.5 text-sm hover:bg-gray-800 disabled:opacity-50"
         >
           {pending ? "Saving..." : "Save"}
         </button>
